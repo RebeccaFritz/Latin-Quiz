@@ -1,0 +1,208 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname |Latin game|) (read-case-sensitive #t) (teachpacks ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #t #t none #f ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp")) #f)))
+; Latin Game
+; A quiz on Latin declension and conjugation endings
+; Has an option for just the endings or actual declension
+; Embeded memorization videos or pronunciation recordings
+; hint option fills if the word you are on
+
+; What will change?
+; * the background table will change depending on if it is a declension or conjugation
+; * the set of words you need to match will change
+; * the color of the words will change when you have them correct (or wrong if you ask for help)
+
+;-----------------------------------------------------------
+
+;Make World State and Structures
+; * ciw -> current input words (another structure)
+; * lof -> list of forms / endings (is another structure)
+; * score -> how many words the player has correct
+; * grid -> grid structure with all the grid details
+; * b1 and b2 -> is the button pressed
+(define-struct WS [ciw lof score grid b1 b2])
+
+; Used to create a list of forms the player is trying to match
+; * woe - word or ending
+; * color - color of the word
+; * location - posn with the location of the word
+(define-struct Forms [woe color location])
+
+; Used to create a list of the player's words
+; * pw - player word
+; * color - color of the word
+; * location - posn with the location of the word
+(define-struct InputWord [pw location])
+
+; Grid Details
+; * gridoutline - current grid outline in use
+; * lhl - list of horizontal lines
+; * lverl - list of vertical lines
+; * headers - list of header words
+(define-struct Grid [outline lhl lverl headers])
+
+;-----------------------------------------------------
+
+; Globals
+
+; Background
+(define HEIGHT 800)
+(define WIDTH 600)
+(define BACKGROUND (rectangle WIDTH HEIGHT 'solid 'LightCyan))
+
+; Defining Globals for the Conjugation Chart
+(define CGRIDWIDTH (- WIDTH 100))
+(define CGRIDHEIGHT (- HEIGHT 100))
+;Horizontal and Vertical lines for the Conjugations Grid
+(define HLINEC (list (list (make-posn 0 100) (make-posn CGRIDWIDTH 100))
+                     (list (make-posn 0 200) (make-posn CGRIDWIDTH 200))
+                     (list (make-posn 0 300) (make-posn CGRIDWIDTH 300))
+                     (list (make-posn 0 400) (make-posn CGRIDWIDTH 400))
+                     (list (make-posn 0 500) (make-posn CGRIDWIDTH 500))
+                     (list (make-posn 0 600) (make-posn CGRIDWIDTH 600))))
+(define VLINEC (list (list (make-posn (/ CGRIDWIDTH 3) 0) (make-posn (/ CGRIDWIDTH 3) CGRIDHEIGHT))
+                     (list (make-posn (* CGRIDWIDTH (/ 2 3)) 0) (make-posn (* CGRIDWIDTH (/ 2 3)) CGRIDHEIGHT))))
+; outline for the Conjugations Grid
+(define CONJOUTLINE (overlay/align "right" "bottom"
+                                   (rectangle CGRIDWIDTH 100 'solid 'PaleTurquoise)
+                                   (rectangle CGRIDWIDTH CGRIDHEIGHT 'outline 'black)))
+; text textx texty
+(define CONJHEADERLIST (list (list (text "Singular" 24 'black) 300 100)
+                            (list (text "Plural" 24 'black) 465 100)
+                            (list (text "Nominative" 24 'black) 130 200)
+                            (list (text "Genitive" 24 'black) 130 300)
+                            (list (text "Dative" 24 'black) 130 400)
+                            (list (text "Accusative" 24 'black) 130 500)
+                            (list (text "Ablative" 24 'black) 130 600)
+                            (list (text "Vocative" 24 'black) 130 700)))
+; Conjugations grid structure
+(define conjgridstruct (make-Grid CONJOUTLINE VLINEC HLINEC CONJHEADERLIST))
+
+;Defining Globals for the Declension Chart
+(define DGRIDWIDTH 500)
+(define DGRIDHEIGHT 400)
+; Horizontal and Vertical lines for the declension grid
+(define HLINED (list (list (make-posn 0 100) (make-posn DGRIDWIDTH 100))
+                     (list (make-posn 0 200) (make-posn DGRIDWIDTH 200))
+                     (list (make-posn 0 300) (make-posn DGRIDWIDTH 300))))
+(define VLINED (list (list (make-posn (/ DGRIDWIDTH 3) 0) (make-posn (/ DGRIDWIDTH 3) DGRIDHEIGHT))
+                     (list (make-posn (* DGRIDWIDTH (/ 2 3)) 0) (make-posn (* DGRIDWIDTH (/ 2 3)) DGRIDHEIGHT))))
+; Outline for the Declension Chart
+(define DECOUTLINE (rectangle DGRIDWIDTH DGRIDHEIGHT 'outline 'black))
+; List of headers for the declesion chart
+; text textx texty
+(define DECHEADERLIST (list (list (text "Singular" 24 'black) 300 250)
+                            (list (text "Plural" 24 'black) 465 250)
+                            (list (text "First" 24 'black) 130 350)
+                            (list (text "Second" 24 'black) 130 450)
+                            (list (text "Third" 24 'black) 130 550)))
+; Declensions grid structure
+(define decgridstruct (make-Grid DECOUTLINE VLINED HLINED DECHEADERLIST))
+
+; Buttons
+(define B1LOCATION (make-posn (/ WIDTH 4) (* 7 (/ HEIGHT 8))))
+(define B2LOCATION (make-posn (* (/ WIDTH 4) 3) (posn-y B1LOCATION)))
+(define BUTTONWIDTH 250)
+(define BUTTONHEIGHT 100)
+(define BUTTONS (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
+                                      (text "Noun Declension" 24 'black)) (posn-x B1LOCATION) (posn-y B1LOCATION)
+                                                                          (place-image (overlay (text "Verb Conjugation" 24 'black)
+                                                                                                (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black))
+                                                                                       (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND)))
+(define B1P (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
+                                  (text "Noun Declension" 24 'black)
+                                  (rectangle BUTTONWIDTH BUTTONHEIGHT 'solid 'PaleTurquoise))
+                         (posn-x B1LOCATION) (posn-y B1LOCATION)
+                         (place-image (overlay (text "Verb Conjugation" 24 'black)
+                                               (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black))
+                                      (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND)))
+(define B2P (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
+                                  (text "Noun Declension" 24 'black))
+                         (posn-x B1LOCATION) (posn-y B1LOCATION)
+                         (place-image (overlay (text "Verb Conjugation" 24 'black)
+                                               (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
+                                               (rectangle BUTTONWIDTH BUTTONHEIGHT 'solid 'PaleTurquoise))
+                                      (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND)))
+
+;------------------------------------
+
+; Worldstate -> Image 
+(define (render ws)
+  (local [(define grid (WS-grid ws))]
+    (beside (addtext (Grid-headers grid)
+                     (overlay (addlines (addlines (Grid-outline grid)
+                                                  (Grid-lhl grid))
+                                        (Grid-lverl grid))
+                              BACKGROUND))
+            (cond
+              [(WS-b1 ws) B1P]
+              [(WS-b2 ws) B2P]
+              [else BUTTONS]))))
+
+; list of (list text number number), img -> img
+; adds text to the charts
+(define (addtext list img)
+  (foldl placeonetext img list))
+
+; (list text number number), img -> img
+(define (placeonetext li acc)
+  (local [(define text (first li))
+          (define x (second li))
+          (define y (first (rest (rest li))))]
+    (place-image text x y acc)))
+
+; image, list of list of posns -> image
+; adds lines to the charts
+(define (addlines bkgrnd lol)
+  (foldl (lambda (li acc)
+           (add-line acc
+                     (posn-x (first li))
+                     (posn-y (first li))
+                     (posn-x (first (rest li)))
+                     (posn-y (first (rest li)))
+                     'black))
+         bkgrnd
+         lol))
+
+
+; Worldstate -> Worldstate
+(define (tock ws) ws)
+
+; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
+; checks to see if the buttons on screen are clicked
+(define (mouse-handler ws mx my evt)
+  (local [(define b1p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) #t #f))
+          (define b2p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) #f #t))
+          (define b1x (+ 600 (posn-x B1LOCATION)))
+          (define b1y (posn-y B1LOCATION))
+          (define b2x (+ 600 (posn-x B2LOCATION)))
+          (define b2y (posn-y B2LOCATION))]
+    (if (string=? "button-up" evt)
+        (cond [(and (<= (- b1x (/ BUTTONWIDTH 2))
+                        mx
+                        (+ b1x (/ BUTTONWIDTH 2)))
+                    (<= (- b1y (/ BUTTONHEIGHT 2))
+                        my
+                        (+ b1y (/ BUTTONHEIGHT 2)))) b1p]
+              [(and (<= (- b2x (/ BUTTONWIDTH 2))
+                        mx
+                        (+ b2x (/ BUTTONWIDTH 2)))
+                    (<= (- b2y (/ BUTTONHEIGHT 2))
+                        my
+                        (+ b2y (/ BUTTONHEIGHT 2)))) b2p]
+              [else ws])
+        ws)))
+
+; Worldstate, Key -> Worldstate
+(define (key-handler ws key) ws)
+
+; Initial Worldstate
+; (define-struct WS [ciw lof score grid b1 b2])
+(define initial-ws (make-WS empty empty 0 conjgridstruct #f #f))
+
+(big-bang initial-ws
+  (to-draw render)
+  (on-tick tock)
+  (on-mouse mouse-handler)
+  (on-key key-handler))
+  
