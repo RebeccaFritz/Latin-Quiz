@@ -1,6 +1,3 @@
-;; The first three lines of this file were inserted by DrRacket. They record metadata
-;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-advanced-reader.ss" "lang")((modname |Latin game|) (read-case-sensitive #t) (teachpacks ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #t #t none #f ((lib "image.rkt" "teachpack" "2htdp") (lib "universe.rkt" "teachpack" "2htdp")) #f)))
 (require 2htdp/batch-io)
 
 ; Latin Game
@@ -21,8 +18,9 @@
 ; * lof -> list of forms / endings (is another structure)
 ; * score -> how many words the player has correct
 ; * grid -> grid structure with all the grid details
+; * prompt -> a string with the prompt being displayed for the player
 ; * b1? and b2? -> is the button pressed
-(define-struct WS [ciw lof score grid b1? b2?])
+(define-struct WS [ciw lof score grid prompt b1? b2?])
 
 ; Used to create a list of forms the player is trying to match
 ; * woe - word or ending
@@ -52,24 +50,24 @@
 (define WIDTH 600)
 (define BACKGROUND (rectangle WIDTH HEIGHT 'solid 'LightCyan))
 
-; Defining Globals for the Conjugation Chart
-(define CGRIDWIDTH (- WIDTH 100))
-(define CGRIDHEIGHT (- HEIGHT 100))
-;Horizontal and Vertical lines for the Conjugations Grid
-(define HLINEC (list (list (make-posn 0 100) (make-posn CGRIDWIDTH 100))
-                     (list (make-posn 0 200) (make-posn CGRIDWIDTH 200))
-                     (list (make-posn 0 300) (make-posn CGRIDWIDTH 300))
-                     (list (make-posn 0 400) (make-posn CGRIDWIDTH 400))
-                     (list (make-posn 0 500) (make-posn CGRIDWIDTH 500))
-                     (list (make-posn 0 600) (make-posn CGRIDWIDTH 600))))
-(define VLINEC (list (list (make-posn (/ CGRIDWIDTH 3) 0) (make-posn (/ CGRIDWIDTH 3) CGRIDHEIGHT))
-                     (list (make-posn (* CGRIDWIDTH (/ 2 3)) 0) (make-posn (* CGRIDWIDTH (/ 2 3)) CGRIDHEIGHT))))
-; outline for the Conjugations Grid
-(define CONJOUTLINE (overlay/align "right" "bottom"
-                                   (rectangle CGRIDWIDTH 100 'solid 'PaleTurquoise)
-                                   (rectangle CGRIDWIDTH CGRIDHEIGHT 'outline 'black)))
+; Defining Globals for the Declensions Chart
+(define DGRIDWIDTH (- WIDTH 100))
+(define DGRIDHEIGHT (- HEIGHT 100))
+;Horizontal and Vertical lines for the declensions Grid
+(define HLINED (list (list (make-posn 0 100) (make-posn DGRIDWIDTH 100))
+                     (list (make-posn 0 200) (make-posn DGRIDWIDTH 200))
+                     (list (make-posn 0 300) (make-posn DGRIDWIDTH 300))
+                     (list (make-posn 0 400) (make-posn DGRIDWIDTH 400))
+                     (list (make-posn 0 500) (make-posn DGRIDWIDTH 500))
+                     (list (make-posn 0 600) (make-posn DGRIDWIDTH 600))))
+(define VLINED (list (list (make-posn (/ DGRIDWIDTH 3) 0) (make-posn (/ DGRIDWIDTH 3) DGRIDHEIGHT))
+                     (list (make-posn (* DGRIDWIDTH (/ 2 3)) 0) (make-posn (* DGRIDWIDTH (/ 2 3)) DGRIDHEIGHT))))
+; outline for the declensions Grid
+(define DECOUTLINE (overlay/align "right" "bottom"
+                                   (rectangle DGRIDWIDTH 100 'solid 'PaleTurquoise)
+                                   (rectangle DGRIDWIDTH DGRIDHEIGHT 'outline 'black)))
 ; text textx texty
-(define CONJHEADERLIST (list (list (text "Singular" 24 'black) 300 100)
+(define DECHEADERLIST (list (list (text "Singular" 24 'black) 300 100)
                             (list (text "Plural" 24 'black) 465 100)
                             (list (text "Nominative" 24 'black) 130 200)
                             (list (text "Genitive" 24 'black) 130 300)
@@ -77,28 +75,7 @@
                             (list (text "Accusative" 24 'black) 130 500)
                             (list (text "Ablative" 24 'black) 130 600)
                             (list (text "Vocative" 24 'black) 130 700)))
-; Conjugations grid structure
-(define conjgridstruct (make-Grid CONJOUTLINE VLINEC HLINEC CONJHEADERLIST))
-
-;Defining Globals for the Declension Chart
-(define DGRIDWIDTH 500)
-(define DGRIDHEIGHT 400)
-; Horizontal and Vertical lines for the declension grid
-(define HLINED (list (list (make-posn 0 100) (make-posn DGRIDWIDTH 100))
-                     (list (make-posn 0 200) (make-posn DGRIDWIDTH 200))
-                     (list (make-posn 0 300) (make-posn DGRIDWIDTH 300))))
-(define VLINED (list (list (make-posn (/ DGRIDWIDTH 3) 0) (make-posn (/ DGRIDWIDTH 3) DGRIDHEIGHT))
-                     (list (make-posn (* DGRIDWIDTH (/ 2 3)) 0) (make-posn (* DGRIDWIDTH (/ 2 3)) DGRIDHEIGHT))))
-; Outline for the Declension Chart
-(define DECOUTLINE (rectangle DGRIDWIDTH DGRIDHEIGHT 'outline 'black))
-; List of headers for the declesion chart
-; text textx texty
-(define DECHEADERLIST (list (list (text "Singular" 24 'black) 300 250)
-                            (list (text "Plural" 24 'black) 465 250)
-                            (list (text "First" 24 'black) 130 350)
-                            (list (text "Second" 24 'black) 130 450)
-                            (list (text "Third" 24 'black) 130 550)))
-; Declensions grid structure
+; Declension grid structure
 (define decgridstruct (make-Grid DECOUTLINE VLINED HLINED DECHEADERLIST))
 ; Declension lists
 (define 1STDEC (read-lines "1st Declension Noun Endings.txt"))
@@ -109,6 +86,27 @@
 (define 4THDECMASC (read-lines "4th Declension Noun Masculine Endings.txt"))
 (define 4THDECNEU (read-lines "4th Declension Noun Neuter Endings.txt"))
 (define 5THDEC (read-lines "5th Declension Noun Endings.txt"))
+
+;Defining Globals for the Conjugation Chart
+(define CGRIDWIDTH 500)
+(define CGRIDHEIGHT 400)
+; Horizontal and Vertical lines for the conjugation grid
+(define HLINEC (list (list (make-posn 0 100) (make-posn CGRIDWIDTH 100))
+                     (list (make-posn 0 200) (make-posn CGRIDWIDTH 200))
+                     (list (make-posn 0 300) (make-posn CGRIDWIDTH 300))))
+(define VLINEC (list (list (make-posn (/ CGRIDWIDTH 3) 0) (make-posn (/ CGRIDWIDTH 3) CGRIDHEIGHT))
+                     (list (make-posn (* CGRIDWIDTH (/ 2 3)) 0) (make-posn (* CGRIDWIDTH (/ 2 3)) CGRIDHEIGHT))))
+; Outline for the Conjugation Chart
+(define CONJOUTLINE (rectangle CGRIDWIDTH CGRIDHEIGHT 'outline 'black))
+; List of headers for the conjugation chart
+; text textx texty
+(define CONJHEADERLIST (list (list (text "Singular" 24 'black) 300 250)
+                            (list (text "Plural" 24 'black) 465 250)
+                            (list (text "First" 24 'black) 130 350)
+                            (list (text "Second" 24 'black) 130 450)
+                            (list (text "Third" 24 'black) 130 550)))
+; Conjugation grid structure
+(define conjgridstruct (make-Grid CONJOUTLINE VLINEC HLINEC CONJHEADERLIST))
 
 ; Buttons
 (define B1LOCATION (make-posn (/ WIDTH 4) (* 7 (/ HEIGHT 8))))
@@ -141,7 +139,13 @@
 (define (render ws)
   (local [(define grid (WS-grid ws))]
     (beside (drawgrid grid)
-            (drawbuttons (WS-b1? ws) (WS-b2? ws)))))
+            (place-image (drawprompt (WS-prompt ws)) (/ (image-width BACKGROUND) 2) (/ (image-height BACKGROUND) 2)
+                     (drawbuttons (WS-b1? ws) (WS-b2? ws))))))
+
+; String -> image
+; Draws the prompt text on the board
+(define (drawprompt prompt)
+  (text prompt 24 'black))
 
 ; Boolean, boolean -> image
 ; Draws the buttons on the board with a darker color if they are pressed
@@ -199,16 +203,34 @@
 ; checks to see if the buttons on screen are clicked
 (define (mouse-handler ws mx my evt)
   (if (string=? "button-up" evt)
-      (change-button-color ws mx my evt)
+      (change-button-color (change-chart (change-prompt ws mx my evt) mx my evt) mx my evt)
       ws))
 
 ; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
 ; changes the color of the buttons when they are clicked
 (define (change-button-color ws mx my evt)
-  (local [(define b1p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) #t #f))
-          (define b2p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) #f #t))]
+  (local [(define b1p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) (WS-prompt ws) #t #f))
+          (define b2p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) (WS-prompt ws) #f #t))]
     (cond [(b1-clicked? mx my) b1p]
           [(b2-clicked? mx my) b2p]
+          [else ws])))
+
+; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
+; changes the chart being displayed when a button is pressed
+(define (change-chart ws mx my evt)
+  (local [(define declension_chart (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) decgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws)))
+          (define conjugation_chart (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) conjgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws)))]
+    (cond [(b1-clicked? mx my) declension_chart]
+          [(b2-clicked? mx my) conjugation_chart]
+          [else ws])))
+
+; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
+; changes the prompt being displayed when a button is pressed NON FUNCTIONAL
+(define (change-prompt ws mx my evt)
+  (local [(define declension_prompt (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) "Please Decline" (WS-b1? ws) (WS-b2? ws)))
+          (define conjugation_prompt (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) "Please Conjugate" (WS-b1? ws) (WS-b2? ws)))]
+    (cond [(b1-clicked? mx my) declension_prompt]
+          [(b2-clicked? mx my) conjugation_prompt]
           [else ws])))
 
 ; Mouse-x, Mouse-y -> Boolean
@@ -247,7 +269,7 @@
 
 ; Initial Worldstate
 ; (define-struct WS [ciw lof score grid b1? b2?])
-(define initial-ws (make-WS empty empty 0 conjgridstruct #f #f))
+(define initial-ws (make-WS empty empty 0 conjgridstruct "Welcome! Please press 'Noun Declension'\nor 'Verb Conjugation' to begin." #f #f))
 
 (big-bang initial-ws
   (to-draw render)
