@@ -93,12 +93,14 @@
 (define LOCATIOND3 (make-posn 295 400))
 (define LOCATIOND4 (make-posn 295 500))
 (define LOCATIOND5 (make-posn 295 600))
-(define LOCATIOND6 (make-posn 10 10))
-(define LOCATIOND7 (make-posn 10 10))
-(define LOCATIOND8 (make-posn 10 10))
-(define LOCATIOND9 (make-posn 10 10))
-(define LOCATIOND10 (make-posn 10 10))
-(define DEC_LOCATIONS (list LOCATIOND1 LOCATIOND2 LOCATIOND3 LOCATIOND4 LOCATIOND5 LOCATIOND6 LOCATIOND7 LOCATIOND8 LOCATIOND9 LOCATIOND10))
+(define LOCATIOND6 (make-posn 295 700))
+(define LOCATIOND7 (make-posn 465 200))
+(define LOCATIOND8 (make-posn 465 300))
+(define LOCATIOND9 (make-posn 465 400))
+(define LOCATIOND10 (make-posn 465 500))
+(define LOCATIOND11 (make-posn 465 600))
+(define LOCATIOND12 (make-posn 465 700))
+(define DEC_LOCATIONS (list LOCATIOND1 LOCATIOND2 LOCATIOND3 LOCATIOND4 LOCATIOND5 LOCATIOND6 LOCATIOND7 LOCATIOND8 LOCATIOND9 LOCATIOND10 LOCATIOND11 LOCATIOND12))
 (define DEC_WORDS (list (make-InputWord "" LOCATIOND1)
                          (make-InputWord "" LOCATIOND2)
                          (make-InputWord "" LOCATIOND3)
@@ -108,7 +110,9 @@
                          (make-InputWord "" LOCATIOND7)
                          (make-InputWord "" LOCATIOND8)
                          (make-InputWord "" LOCATIOND9)
-                         (make-InputWord "" LOCATIOND10)))
+                         (make-InputWord "" LOCATIOND10)
+                         (make-InputWord "" LOCATIOND11)
+                         (make-InputWord "" LOCATIOND12)))
 
 ;Defining Globals for the Conjugation Chart
 (define CGRIDWIDTH 500)
@@ -131,12 +135,12 @@
 ; Conjugation grid structure
 (define conjgridstruct (make-Grid CONJOUTLINE VLINEC HLINEC CONJHEADERLIST))
 ; Conjugaiton text locations
-(define LOCATIONC1 (make-posn 295 200))
-(define LOCATIONC2 (make-posn 10 10))
-(define LOCATIONC3 (make-posn 10 10))
-(define LOCATIONC4 (make-posn 10 10))
-(define LOCATIONC5 (make-posn 10 10))
-(define LOCATIONC6 (make-posn 10 10))
+(define LOCATIONC1 (make-posn 295 350))
+(define LOCATIONC2 (make-posn 295 450))
+(define LOCATIONC3 (make-posn 295 550))
+(define LOCATIONC4 (make-posn 465 350))
+(define LOCATIONC5 (make-posn 465 450))
+(define LOCATIONC6 (make-posn 465 550))
 (define CONJ_LOCATIONS (list LOCATIONC1 LOCATIONC2 LOCATIONC3 LOCATIONC4 LOCATIONC5 LOCATIONC6))
 (define CONJ_WORDS (list (make-InputWord "" LOCATIONC1)
                          (make-InputWord "" LOCATIONC2)
@@ -176,13 +180,14 @@
 (define (render ws)
   (local [(define grid (WS-grid ws))]
     (beside (overlay (draw-words (WS-ciw ws)) (drawgrid grid))
-            (place-image (drawprompt (WS-prompt ws)) (/ (image-width BACKGROUND) 2) (/ (image-height BACKGROUND) 2)
+            (place-image (drawprompt (WS-prompt ws))
+             (/ (image-width BACKGROUND) 2) (/ (image-height BACKGROUND) 2)
                      (drawbuttons (WS-b1? ws) (WS-b2? ws))))))
 
 ; List of Structures -> Image
 ; draws the users text on screen
 (define (draw-words ciw)
-  (local [(define decwords? (= (length ciw) 10))
+  (local [(define decwords? (= (length ciw) 12))
           (define txt_size 24)]
     (cond [decwords? (place-images (list (text (InputWord-word (first ciw)) txt_size 'black)
                                          (text (InputWord-word (second ciw)) txt_size 'black)
@@ -193,7 +198,9 @@
                                          (text (InputWord-word (seventh ciw)) txt_size 'black)
                                          (text (InputWord-word (eighth ciw)) txt_size 'black)
                                          (text (InputWord-word (ninth ciw)) txt_size 'black)
-                                         (text (InputWord-word (tenth ciw)) txt_size 'black))
+                                         (text (InputWord-word (tenth ciw)) txt_size 'black)
+                                         (text (InputWord-word (list-ref ciw 10)) txt_size 'black)
+                                         (text (InputWord-word (list-ref ciw 11)) txt_size 'black))
                                    DEC_LOCATIONS
                                    (rectangle WIDTH HEIGHT 'solid 'transparent))]
           [else (place-images (list (text (InputWord-word (first ciw)) txt_size 'black)
@@ -286,8 +293,8 @@
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the chart being displayed when a button is pressed
 (define (change-chart ws mx my)
-  (local [(define declension_chart (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) decgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))
-          (define conjugation_chart (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) conjgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))]
+  (local [(define declension_chart (make-WS DEC_WORDS (WS-lof ws) (WS-score ws) decgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))
+          (define conjugation_chart (make-WS CONJ_WORDS (WS-lof ws) (WS-score ws) conjgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))]
     (cond [(b1-clicked? mx my) declension_chart]
           [(b2-clicked? mx my) conjugation_chart]
           [else ws])))
@@ -383,15 +390,23 @@
 (define (update_word key ciw location)
   (local [(define valid_inputs (list "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" "A" "E" "I" "O" "U" "-"))
           (define valid? (foldr (lambda (li acc) (if (string=? key li) #true acc)) #false valid_inputs))]
-    (if valid?
-        (map (lambda (li)
-               (if (and (= (posn-x location) (posn-x (InputWord-location li)))
-                        (= (posn-y location) (posn-y (InputWord-location li))))
-                   (make-InputWord (string-append (InputWord-word li) key)
-                                   (InputWord-location li))
-                   li))
-             ciw)
-        ciw)))
+    (cond [valid?
+           (map (lambda (li)
+                  (if (and (= (posn-x location) (posn-x (InputWord-location li)))
+                           (= (posn-y location) (posn-y (InputWord-location li))))
+                      (make-InputWord (string-append (InputWord-word li) key)
+                                      (InputWord-location li))
+                      li))
+                ciw)]
+          [(string=? key "\b")
+           (map (lambda (li)
+                  (if (and (= (posn-x location) (posn-x (InputWord-location li)))
+                           (= (posn-y location) (posn-y (InputWord-location li))))
+                      (make-InputWord (substring (InputWord-word li) 0 (- (string-length (InputWord-word li)) 1))
+                                      (InputWord-location li))
+                      li))
+                ciw)]
+           [else ciw])))
     
 
 ; Initial Worldstate
