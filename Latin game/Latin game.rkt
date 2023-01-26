@@ -1,4 +1,5 @@
 (require 2htdp/batch-io)
+(require racket/list)
 
 ; Latin Game
 ; A quiz on Latin declension and conjugation endings
@@ -14,25 +15,25 @@
 ;-----------------------------------------------------------
 
 ;Make World State and Structures
-; * ciw -> current input words (another structure)
+; * ciw -> list of current input words (another structure)
 ; * lof -> list of forms / endings (is another structure)
 ; * score -> how many words the player has correct
 ; * grid -> grid structure with all the grid details
 ; * prompt -> a string with the prompt being displayed for the player
 ; * b1? and b2? -> is the button pressed
-(define-struct WS [ciw lof score grid prompt b1? b2?])
+; * cursor_location -> a posn representing the last location the mouse clicked
+(define-struct WS [ciw lof score grid prompt b1? b2? area_clicked])
 
 ; Used to create a list of forms the player is trying to match
-; * woe - word or ending
+; * word - word or ending
 ; * color - color of the word
 ; * location - posn with the location of the word
-(define-struct Forms [woe color location])
+(define-struct Forms [word color location])
 
 ; Used to create a list of the player's words
-; * pw - player word
-; * color - color of the word
+; * word - word
 ; * location - posn with the location of the word
-(define-struct InputWord [pw location])
+(define-struct InputWord [word location])
 
 ; Grid Details
 ; * gridoutline - current grid outline in use
@@ -86,6 +87,28 @@
 (define 4THDECMASC (read-lines "4th Declension Noun Masculine Endings.txt"))
 (define 4THDECNEU (read-lines "4th Declension Noun Neuter Endings.txt"))
 (define 5THDEC (read-lines "5th Declension Noun Endings.txt"))
+; Declensions locations
+(define LOCATIOND1 (make-posn 295 200))
+(define LOCATIOND2 (make-posn 295 300))
+(define LOCATIOND3 (make-posn 295 400))
+(define LOCATIOND4 (make-posn 295 500))
+(define LOCATIOND5 (make-posn 295 600))
+(define LOCATIOND6 (make-posn 10 10))
+(define LOCATIOND7 (make-posn 10 10))
+(define LOCATIOND8 (make-posn 10 10))
+(define LOCATIOND9 (make-posn 10 10))
+(define LOCATIOND10 (make-posn 10 10))
+(define DEC_LOCATIONS (list LOCATIOND1 LOCATIOND2 LOCATIOND3 LOCATIOND4 LOCATIOND5 LOCATIOND6 LOCATIOND7 LOCATIOND8 LOCATIOND9 LOCATIOND10))
+(define DEC_WORDS (list (make-InputWord "" LOCATIOND1)
+                         (make-InputWord "" LOCATIOND2)
+                         (make-InputWord "" LOCATIOND3)
+                         (make-InputWord "" LOCATIOND4)
+                         (make-InputWord "" LOCATIOND5)
+                         (make-InputWord "" LOCATIOND6)
+                         (make-InputWord "" LOCATIOND7)
+                         (make-InputWord "" LOCATIOND8)
+                         (make-InputWord "" LOCATIOND9)
+                         (make-InputWord "" LOCATIOND10)))
 
 ;Defining Globals for the Conjugation Chart
 (define CGRIDWIDTH 500)
@@ -107,6 +130,20 @@
                             (list (text "Third" 24 'black) 130 550)))
 ; Conjugation grid structure
 (define conjgridstruct (make-Grid CONJOUTLINE VLINEC HLINEC CONJHEADERLIST))
+; Conjugaiton text locations
+(define LOCATIONC1 (make-posn 295 200))
+(define LOCATIONC2 (make-posn 10 10))
+(define LOCATIONC3 (make-posn 10 10))
+(define LOCATIONC4 (make-posn 10 10))
+(define LOCATIONC5 (make-posn 10 10))
+(define LOCATIONC6 (make-posn 10 10))
+(define CONJ_LOCATIONS (list LOCATIONC1 LOCATIONC2 LOCATIONC3 LOCATIONC4 LOCATIONC5 LOCATIONC6))
+(define CONJ_WORDS (list (make-InputWord "" LOCATIONC1)
+                         (make-InputWord "" LOCATIONC2)
+                         (make-InputWord "" LOCATIONC3)
+                         (make-InputWord "" LOCATIONC4)
+                         (make-InputWord "" LOCATIONC5)
+                         (make-InputWord "" LOCATIONC6)))
 
 ; Buttons
 (define B1LOCATION (make-posn (/ WIDTH 4) (* 7 (/ HEIGHT 8))))
@@ -138,9 +175,35 @@
 ; Worldstate -> Image 
 (define (render ws)
   (local [(define grid (WS-grid ws))]
-    (beside (drawgrid grid)
+    (beside (overlay (draw-words (WS-ciw ws)) (drawgrid grid))
             (place-image (drawprompt (WS-prompt ws)) (/ (image-width BACKGROUND) 2) (/ (image-height BACKGROUND) 2)
                      (drawbuttons (WS-b1? ws) (WS-b2? ws))))))
+
+; List of Structures -> Image
+; draws the users text on screen
+(define (draw-words ciw)
+  (local [(define decwords? (= (length ciw) 10))
+          (define txt_size 24)]
+    (cond [decwords? (place-images (list (text (InputWord-word (first ciw)) txt_size 'black)
+                                         (text (InputWord-word (second ciw)) txt_size 'black)
+                                         (text (InputWord-word (third ciw)) txt_size 'black)
+                                         (text (InputWord-word (fourth ciw)) txt_size 'black)
+                                         (text (InputWord-word (fifth ciw)) txt_size 'black)
+                                         (text (InputWord-word (sixth ciw)) txt_size 'black)
+                                         (text (InputWord-word (seventh ciw)) txt_size 'black)
+                                         (text (InputWord-word (eighth ciw)) txt_size 'black)
+                                         (text (InputWord-word (ninth ciw)) txt_size 'black)
+                                         (text (InputWord-word (tenth ciw)) txt_size 'black))
+                                   DEC_LOCATIONS
+                                   (rectangle WIDTH HEIGHT 'solid 'transparent))]
+          [else (place-images (list (text (InputWord-word (first ciw)) txt_size 'black)
+                                    (text (InputWord-word (second ciw)) txt_size 'black)
+                                    (text (InputWord-word (third ciw)) txt_size 'black)
+                                    (text (InputWord-word (fourth ciw)) txt_size 'black)
+                                    (text (InputWord-word (fifth ciw)) txt_size 'black)
+                                    (text (InputWord-word (sixth ciw)) txt_size 'black))
+                              CONJ_LOCATIONS
+                              (rectangle WIDTH HEIGHT 'solid 'transparent))])))
 
 ; String -> image
 ; Draws the prompt text on the board
@@ -203,23 +266,28 @@
 ; checks to see if the buttons on screen are clicked
 (define (mouse-handler ws mx my evt)
   (if (string=? "button-up" evt)
-      (change-button-color (change-chart (change-prompt ws mx my evt) mx my evt) mx my evt)
+      (update-area_clicked (change-button-color (change-chart (change-prompt ws mx my evt) mx my) mx my) mx my)
       ws))
 
-; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
+; Worldstate, Mouse-x, Mouse-y -> Worldstate
+; changes the area_clicked value when the mouse is used
+(define (update-area_clicked ws mx my)
+  (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) (WS-prompt ws) (WS-b1? ws) (WS-b2? ws) (make-posn mx my)))
+
+; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the color of the buttons when they are clicked
-(define (change-button-color ws mx my evt)
-  (local [(define b1p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) (WS-prompt ws) #t #f))
-          (define b2p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) (WS-prompt ws) #f #t))]
+(define (change-button-color ws mx my)
+  (local [(define b1p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) (WS-prompt ws) #t #f (WS-area_clicked ws)))
+          (define b2p (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) (WS-prompt ws) #f #t (WS-area_clicked ws)))]
     (cond [(b1-clicked? mx my) b1p]
           [(b2-clicked? mx my) b2p]
           [else ws])))
 
-; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
+; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the chart being displayed when a button is pressed
-(define (change-chart ws mx my evt)
-  (local [(define declension_chart (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) decgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws)))
-          (define conjugation_chart (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) conjgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws)))]
+(define (change-chart ws mx my)
+  (local [(define declension_chart (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) decgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))
+          (define conjugation_chart (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) conjgridstruct (WS-prompt ws) (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))]
     (cond [(b1-clicked? mx my) declension_chart]
           [(b2-clicked? mx my) conjugation_chart]
           [else ws])))
@@ -227,8 +295,8 @@
 ; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
 ; changes the prompt being displayed when a button is pressed NON FUNCTIONAL
 (define (change-prompt ws mx my evt)
-  (local [(define declension_prompt (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) "Please Decline" (WS-b1? ws) (WS-b2? ws)))
-          (define conjugation_prompt (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) "Please Conjugate" (WS-b1? ws) (WS-b2? ws)))]
+  (local [(define declension_prompt (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) "Please Decline" (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))
+          (define conjugation_prompt (make-WS (WS-ciw ws) (WS-lof ws) (WS-score ws) (WS-grid ws) "Please Conjugate" (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))]
     (cond [(b1-clicked? mx my) declension_prompt]
           [(b2-clicked? mx my) conjugation_prompt]
           [else ws])))
@@ -265,11 +333,70 @@
 
 
 ; Worldstate, Key -> Worldstate
-(define (key-handler ws key) ws)
+; if a key is hit and the mouse has clicked in the proper area then type in that location
+; [ciw lof score grid prompt b1? b2? area_clicked]
+(define (key-handler ws key); ws)
+  (local [(define location (determine_location (WS-area_clicked ws) (WS-grid ws)))]
+    (if (posn? location)
+        (make-WS (update_word key (WS-ciw ws) location)
+                 (WS-lof ws)
+                 (WS-score ws)
+                 (WS-grid ws)
+                 (WS-prompt ws)
+                 (WS-b1? ws)
+                 (WS-b2? ws)
+                 (WS-area_clicked ws))
+       ws)))
+
+; Posn, Grid -> Posn or Boolean
+(define (determine_location area_clicked grid)
+  (local [(define mx (posn-x area_clicked))
+          (define my (posn-y area_clicked))]
+    (if (decgrid? (Grid-outline grid))
+        (dec_location mx my)
+        (conj_location mx my))))
+
+; Number, Number -> Posn
+; returns one of the text locations for typing, or false if the user did not click near one  
+(define (dec_location mx my)
+  (foldr (lambda (location acc)
+        (if (and (< (- mx 25) (posn-x location) (+ mx 25))
+                   (< (- my 10) (posn-y location) (+ my 10)))
+              location
+              acc)) #false DEC_LOCATIONS))
+
+; Number, Number -> Posn
+; returns one of the text locations for typing, or false if the user did not click near one  
+(define (conj_location mx my)
+  (foldr (lambda (location acc)
+        (if (and (< (- mx 25) (posn-x location) (+ mx 25))
+                   (< (- my 10) (posn-y location) (+ my 10)))
+              location
+              acc)) #false CONJ_LOCATIONS))
+
+; Image -> boolean
+; determines if the image corresponds to the declesion grid
+(define (decgrid? outline)
+  (= (image-height outline) (image-height DECOUTLINE)))
+
+; Key, String, Posn -> String
+(define (update_word key ciw location)
+  (local [(define valid_inputs (list "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" "A" "E" "I" "O" "U" "-"))
+          (define valid? (foldr (lambda (li acc) (if (string=? key li) #true acc)) #false valid_inputs))]
+    (if valid?
+        (map (lambda (li)
+               (if (and (= (posn-x location) (posn-x (InputWord-location li)))
+                        (= (posn-y location) (posn-y (InputWord-location li))))
+                   (make-InputWord (string-append (InputWord-word li) key)
+                                   (InputWord-location li))
+                   li))
+             ciw)
+        ciw)))
+    
 
 ; Initial Worldstate
 ; (define-struct WS [ciw lof score grid b1? b2?])
-(define initial-ws (make-WS empty empty 0 conjgridstruct "Welcome! Please press 'Noun Declension'\nor 'Verb Conjugation' to begin." #f #f))
+(define initial-ws (make-WS CONJ_WORDS empty 0 conjgridstruct "Welcome! Please press 'Noun Declension'\nor 'Verb Conjugation' to begin." #f #f (make-posn 0 0)))
 
 (big-bang initial-ws
   (to-draw render)
