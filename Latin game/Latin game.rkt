@@ -28,7 +28,7 @@
 ; * word - word or ending
 ; * color - color of the word
 ; * location - posn with the location of the word
-(define-struct Forms [word color location])
+(define-struct Form [word color])
 
 ; Used to create a list of the player's words
 ; * word - word
@@ -43,6 +43,20 @@
 (define-struct Grid [outline lohl lovl headers])
 
 ;-----------------------------------------------------
+
+; filename -> list of Forms
+; turns a list of strings into a list of Form structures
+; [word color location]
+(define (forms-from-file filename)
+  (local [(define lof (filter (lambda (li) (string=? (first li) "form")) (read-words/line filename)))]
+    (map lof->form lof)))
+
+; String -> Form structure
+; turns a string into a Form structure
+(define (lof->form los)
+  (make-Form (second los) 'green))
+
+;-----------------------------------------------------------
 
 ; Globals
 
@@ -79,7 +93,7 @@
 ; Declension grid structure
 (define decgridstruct (make-Grid DECOUTLINE VLINED HLINED DECHEADERLIST))
 ; Declension lists
-(define 1STDEC (read-lines "1st Declension Noun Endings.txt"))
+(define 1STDECEND (forms-from-file "1st Declension Noun Endings.txt"))
 (define 2NDDECMASC (read-lines "2nd Declension Noun Masculine Endings.txt"))
 (define 2NDDECNEU (read-lines "2nd Declension Noun Neuter Endings.txt"))
 (define 3RDDEC (read-lines "3rd Declension Noun Endings.txt"))
@@ -179,28 +193,28 @@
 ; Worldstate -> Image 
 (define (render ws)
   (local [(define grid (WS-grid ws))]
-    (beside (overlay (draw-words (WS-ciw ws)) (drawgrid grid))
+    (beside (overlay (draw-words (WS-ciw ws) (WS-lof ws)) (drawgrid grid))
             (place-image (drawprompt (WS-prompt ws))
              (/ (image-width BACKGROUND) 2) (/ (image-height BACKGROUND) 2)
                      (drawbuttons (WS-b1? ws) (WS-b2? ws))))))
 
-; List of Structures -> Image
+; List of InputWord Structures, List of Form Structures -> Image
 ; draws the users text on screen
-(define (draw-words ciw)
+(define (draw-words ciw lof)
   (local [(define decwords? (= (length ciw) 12))
           (define txt_size 24)]
-    (cond [decwords? (place-images (list (text (InputWord-word (first ciw)) txt_size 'black)
-                                         (text (InputWord-word (second ciw)) txt_size 'black)
-                                         (text (InputWord-word (third ciw)) txt_size 'black)
-                                         (text (InputWord-word (fourth ciw)) txt_size 'black)
-                                         (text (InputWord-word (fifth ciw)) txt_size 'black)
-                                         (text (InputWord-word (sixth ciw)) txt_size 'black)
-                                         (text (InputWord-word (seventh ciw)) txt_size 'black)
-                                         (text (InputWord-word (eighth ciw)) txt_size 'black)
-                                         (text (InputWord-word (ninth ciw)) txt_size 'black)
-                                         (text (InputWord-word (tenth ciw)) txt_size 'black)
-                                         (text (InputWord-word (list-ref ciw 10)) txt_size 'black)
-                                         (text (InputWord-word (list-ref ciw 11)) txt_size 'black))
+    (cond [decwords? (place-images (list (word_or_form (InputWord-word (first ciw)) (Form-word (first lof)))
+                                         (word_or_form (InputWord-word (second ciw)) (Form-word (second lof)))
+                                         (word_or_form (InputWord-word (third ciw)) (Form-word (third lof)))
+                                         (word_or_form (InputWord-word (fourth ciw)) (Form-word (fourth lof)))
+                                         (word_or_form (InputWord-word (fifth ciw)) (Form-word (fifth lof)))
+                                         (word_or_form (InputWord-word (sixth ciw)) (Form-word (sixth lof)))
+                                         (word_or_form (InputWord-word (seventh ciw)) (Form-word (seventh lof)))
+                                         (word_or_form (InputWord-word (eighth ciw)) (Form-word (eighth lof)))
+                                         (word_or_form (InputWord-word (ninth ciw)) (Form-word (ninth lof)))
+                                         (word_or_form (InputWord-word (tenth ciw)) (Form-word (tenth lof)))
+                                         (word_or_form (InputWord-word (list-ref ciw 10)) (Form-word (list-ref lof 10)))
+                                         (word_or_form (InputWord-word (list-ref ciw 11)) (Form-word (list-ref lof 11))))
                                    DEC_LOCATIONS
                                    (rectangle WIDTH HEIGHT 'solid 'transparent))]
           [else (place-images (list (text (InputWord-word (first ciw)) txt_size 'black)
@@ -211,6 +225,14 @@
                                     (text (InputWord-word (sixth ciw)) txt_size 'black))
                               CONJ_LOCATIONS
                               (rectangle WIDTH HEIGHT 'solid 'transparent))])))
+
+; String, String -> String
+; returns the Form string if the InputWord string is the same as the Form string
+; returns the InputWord string if they are different
+(define (word_or_form wordstring formstring)
+  (local [(define txt_size 24)]
+    (if (string=? wordstring formstring) (text formstring txt_size 'green) (text wordstring txt_size 'black))))
+
 
 ; String -> image
 ; Draws the prompt text on the board
@@ -264,9 +286,6 @@
 
 ; Worldstate -> Worldstate
 (define (tock ws) ws)
-
-
-
 
 
 ; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
@@ -388,13 +407,14 @@
 
 ; Key, String, Posn -> String
 (define (update_word key ciw location)
-  (local [(define valid_inputs (list "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" "A" "E" "I" "O" "U" "-"))
-          (define valid? (foldr (lambda (li acc) (if (string=? key li) #true acc)) #false valid_inputs))]
+  (local [(define valid_inputs (list "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" "A" "E" "I" "O" "U" "-" "/"))
+          (define valid? (foldr (lambda (li acc) (if (string=? key li) #true acc)) #false valid_inputs))
+          (define proper_key (key->macron key))]
     (cond [valid?
            (map (lambda (li)
                   (if (and (= (posn-x location) (posn-x (InputWord-location li)))
                            (= (posn-y location) (posn-y (InputWord-location li))))
-                      (make-InputWord (string-append (InputWord-word li) key)
+                      (make-InputWord (string-append (InputWord-word li) proper_key)
                                       (InputWord-location li))
                       li))
                 ciw)]
@@ -407,11 +427,23 @@
                       li))
                 ciw)]
            [else ciw])))
-    
+
+; String -> String
+; if the string is a capital letter A, E, I, O, or U if turns it into a macron vowel
+; if not if just returns the string
+(define (key->macron key)
+  (cond [(string=? key "A") "ā"]
+        [(string=? key "E") "ē"]
+        [(string=? key "I") "ī"]
+        [(string=? key "O") "ō"]
+        [(string=? key "U") "ū"]
+        [else key]))
+  
+
 
 ; Initial Worldstate
 ; (define-struct WS [ciw lof score grid b1? b2?])
-(define initial-ws (make-WS CONJ_WORDS empty 0 conjgridstruct "Welcome! Please press 'Noun Declension'\nor 'Verb Conjugation' to begin." #f #f (make-posn 0 0)))
+(define initial-ws (make-WS DEC_WORDS 1STDECEND 0 decgridstruct "Welcome! Please press 'Noun Declension'\nor 'Verb Conjugation' to begin." #f #f (make-posn 0 0)))
 
 (big-bang initial-ws
   (to-draw render)
