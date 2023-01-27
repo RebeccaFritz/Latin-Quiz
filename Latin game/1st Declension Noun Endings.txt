@@ -1,11 +1,13 @@
-First Declension Feminine Nouns
--a -ae -ae -am -ā
--ae -ārum -īs -ās -īs
-
-nauta, nautae (sailor)
-nauta nautae nautae nautam nautā
-
-nautae nautārum nautīs nautās nautīs
-
-
-
+title First Declension Feminine Noun Endings
+form -a 
+form -ae 
+form -ae 
+form -am 
+form -ā 
+form -a 
+form -ae 
+form -ārum 
+form -īs 
+form -ās  
+form -īs 
+form -ae
