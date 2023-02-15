@@ -101,27 +101,28 @@
 (define 1STDECEND (make-Form_Info "1st Declension Noun Endings"
                                   "Declension"
                                   (forms-from-file "1st Declension Noun Endings.txt")))
-(define 2NDDECMASC (make-Form_Info "Prompt here"
+(define 2NDDECMASCEND (make-Form_Info "2nd Declension Noun Masculine Endings"
                                    "Declension"
                                    (read-lines "2nd Declension Noun Masculine Endings.txt")))
-(define 2NDDECNEU (make-Form_Info "Prompt here"
+(define 2NDDECNEUEND (make-Form_Info "2nd Declension Noun Neuter Endings"
                                   "Declension"
                                   (read-lines "2nd Declension Noun Neuter Endings.txt")))
-(define 3RDDEC (make-Form_Info "Prompt here"
+(define 3RDDECEND (make-Form_Info "3rd Declension Noun Masculine and Feminine Endings"
                                "Declension"
                                (read-lines "3rd Declension Noun Endings.txt")))
-(define 3RDDECNEU (make-Form_Info "Prompt here"
+(define 3RDDECNEUEND (make-Form_Info "3rd Declension Noun Neuter Endings"
                                   "Declension"
                                   (read-lines "3rd Declension Noun Neuter Endings.txt")))
-(define 4THDECMASC (make-Form_Info "Prompt here"
+(define 4THDECMASCEND (make-Form_Info "4th Declension Noun Masculine Endings"
                                    "Declension"
                                    (read-lines "4th Declension Noun Masculine Endings.txt")))
-(define 4THDECNEU (make-Form_Info "Prompt here"
+(define 4THDECNEUEND (make-Form_Info "4th Declension Noun Neuter Endings"
                                   "Declension"
                                   (read-lines "4th Declension Noun Neuter Endings.txt")))
-(define 5THDEC (make-Form_Info "Prompt here"
+(define 5THDECEND (make-Form_Info "5th Declension Noun Feminine Endings"
                                "Declension"
                                (read-lines "5th Declension Noun Endings.txt")))
+(define DEC_LIST (list 1STDECEND 2NDDECMASCEND 2NDDECNEUEND 3RDDECEND 3RDDECNEUEND 4THDECMASCEND 4THDECNEUEND 5THDECEND))
 ; Declensions locations
 (define LOCATIOND1 (make-posn 295 200))
 (define LOCATIOND2 (make-posn 295 300))
@@ -184,9 +185,19 @@
                          (make-InputWord "" LOCATIONC5)
                          (make-InputWord "" LOCATIONC6)))
 ; Conjugation Form lists
-(define 1STCONJ (make-Form_Info "Prompt here"
+(define 1STCONJACTINDIC (make-Form_Info "1st Conjugation Active Indicative"
                                "Conjugation"
                                empty))
+(define 2NDCONJACTINDIC (make-Form_Info "2nd Conjugation Active Indicative"
+                               "Conjugation"
+                               empty))
+(define 3RDCONJACTINDIC (make-Form_Info "3rd Conjugation Active Indicative"
+                               "Conjugation"
+                               empty))
+(define 4THCONJACTINDIC (make-Form_Info "4th Conjugation Active Indicative"
+                               "Conjugation"
+                               empty))
+(define CONJ_LIST (list 1STCONJACTINDIC 2NDCONJACTINDIC 3RDCONJACTINDIC 4THCONJACTINDIC))
 
 ; Buttons
 (define B1LOCATION (make-posn (/ WIDTH 4) (* 7 (/ HEIGHT 8))))
@@ -318,7 +329,7 @@
 ; checks to see if the buttons on screen are clicked
 (define (mouse-handler ws mx my evt)
   (if (string=? "button-up" evt)
-      (update-area_clicked (change-button-color (change-chart (change-prompt ws mx my evt) mx my) mx my) mx my)
+      (update-area_clicked (change-button-color (change-chart ws mx my) mx my) mx my)
       ws))
 
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
@@ -329,8 +340,8 @@
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the color of the buttons when they are clicked
 (define (change-button-color ws mx my)
-  (local [(define b1p (make-WS DEC_WORDS 1STDECEND (WS-score ws) (WS-grid ws) #t #f (WS-area_clicked ws)))
-          (define b2p (make-WS CONJ_WORDS 1STCONJ (WS-score ws) (WS-grid ws) #f #t (WS-area_clicked ws)))]
+  (local [(define b1p (make-WS DEC_WORDS (list-ref DEC_LIST (random 0 (length DEC_LIST))) (WS-score ws) (WS-grid ws) #t #f (WS-area_clicked ws)))
+          (define b2p (make-WS CONJ_WORDS (list-ref CONJ_LIST (random 0 (length CONJ_LIST))) (WS-score ws) (WS-grid ws) #f #t (WS-area_clicked ws)))]
     (cond [(b1-clicked? mx my) b1p]
           [(b2-clicked? mx my) b2p]
           [else ws])))
@@ -342,15 +353,6 @@
           (define conjugation_chart (make-WS (WS-ciw ws) (WS-Form_Info ws) (WS-score ws) conjgridstruct (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))]
     (cond [(b1-clicked? mx my) declension_chart]
           [(b2-clicked? mx my) conjugation_chart]
-          [else ws])))
-
-; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
-; changes the prompt being displayed when a button is pressed NON FUNCTIONAL
-(define (change-prompt ws mx my evt)
-  (local [(define declension_prompt (make-WS (WS-ciw ws) 1STDECEND (WS-score ws) (WS-grid ws) (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))
-          (define conjugation_prompt (make-WS (WS-ciw ws) 1STCONJ (WS-score ws) (WS-grid ws) (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))]
-    (cond [(b1-clicked? mx my) declension_prompt]
-          [(b2-clicked? mx my) conjugation_prompt]
           [else ws])))
 
 ; Mouse-x, Mouse-y -> Boolean
