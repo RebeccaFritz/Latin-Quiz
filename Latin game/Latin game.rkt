@@ -53,13 +53,13 @@
 ; turns a list of strings into a list of Form structures
 ; [word color location]
 (define (forms-from-file filename)
-  (local [(define lof (filter (lambda (li) (string=? (first li) "form")) (read-words/line filename)))]
+  (local [(define lof (read-words/line filename))]
     (map lof->form lof)))
 
 ; String -> Form structure
 ; turns a string into a Form structure
 (define (lof->form los)
-  (make-Form (second los) 'green))
+  (make-Form (first los) 'green))
 
 ;-----------------------------------------------------------
 
@@ -101,28 +101,68 @@
 (define 1STDECEND (make-Form_Info "1st Declension Noun Endings"
                                   "Declension"
                                   (forms-from-file "1st Declension Noun Endings.txt")))
+(define 1STDECEX (make-Form_Info "First Declension Feminine Nouns:\nnauta, nautae (sailor)"
+                                 "Declension"
+                                  (forms-from-file "1st Declension Noun Example.txt")))
 (define 2NDDECMASCEND (make-Form_Info "2nd Declension Noun Masculine Endings"
                                    "Declension"
-                                   (read-lines "2nd Declension Noun Masculine Endings.txt")))
+                                   (forms-from-file "2nd Declension Noun Masculine Endings.txt")))
+(define 2NDDECMASCEX (make-Form_Info "2nd Declension Masculine Nouns:\nager, agrī (farm)"
+                                   "Declension"
+                                   (forms-from-file "2nd Declension Noun Masculine Example.txt")))
 (define 2NDDECNEUEND (make-Form_Info "2nd Declension Noun Neuter Endings"
                                   "Declension"
-                                  (read-lines "2nd Declension Noun Neuter Endings.txt")))
-(define 3RDDECEND (make-Form_Info "3rd Declension Noun Masculine and Feminine Endings"
+                                  (forms-from-file "2nd Declension Noun Neuter Endings.txt")))
+(define 2NDDECNEUEX (make-Form_Info "2nd Declension Neuter Noun:\noppidum, oppidī (town)"
+                                  "Declension"
+                                  (forms-from-file "2nd Declension Noun Neuter Example.txt")))
+(define 3RDDECEND (make-Form_Info "3rd Declension Noun\n Masculine and Feminine Endings"
                                "Declension"
-                               (read-lines "3rd Declension Noun Endings.txt")))
+                               (forms-from-file "3rd Declension Noun Endings.txt")))
+(define 3RDDECEX (make-Form_Info "3rd Declension Masculine Noun:\ndux, ducis (leader)"
+                               "Declension"
+                               (forms-from-file "3rd Declension Noun Example.txt")))
+(define 3RDISTEMEND (make-Form_Info "3rd Declension Noun\n Masculine and Feminine i-stem Endings"
+                               "Declension"
+                               (forms-from-file "3rd Declension i-stem Endings.txt")))
+(define 3RDISTEMEX (make-Form_Info "3rd Declension Feminine i-stem Noun:\npars, partis (part)"
+                               "Declension"
+                               (forms-from-file "3rd Declension i-stem Example.txt")))
 (define 3RDDECNEUEND (make-Form_Info "3rd Declension Noun Neuter Endings"
                                   "Declension"
-                                  (read-lines "3rd Declension Noun Neuter Endings.txt")))
+                                  (forms-from-file "3rd Declension Noun Neuter Endings.txt")))
+(define 3RDDECNEUEX (make-Form_Info "3rd Declension Neuter Noun:\nlūmen, lūminis (light)"
+                                  "Declension"
+                                  (forms-from-file "3rd Declension Noun Neuter Example.txt")))
+(define 3RDISTEMNEUEND (make-Form_Info "3rd Declension Noun Neuter i-stem Endings"
+                                  "Declension"
+                                  (forms-from-file "3rd Declension Neuter i-stem Endings.txt")))
+(define 3RDISTEMNEUEX (make-Form_Info "3rd Declension Neuter i-stem Noun:\nmare, maris (sea)"
+                                  "Declension"
+                                  (forms-from-file "3rd Declension Neuter i-stem Example.txt")))
 (define 4THDECMASCEND (make-Form_Info "4th Declension Noun Masculine Endings"
                                    "Declension"
-                                   (read-lines "4th Declension Noun Masculine Endings.txt")))
+                                   (forms-from-file "4th Declension Noun Masculine Endings.txt")))
+(define 4THDECMASCEX (make-Form_Info "4th Declension Masculine Noun:\nimpetus, impetūs (attack)"
+                                   "Declension"
+                                   (forms-from-file "4th Declension Noun Masculine Example.txt")))
 (define 4THDECNEUEND (make-Form_Info "4th Declension Noun Neuter Endings"
                                   "Declension"
-                                  (read-lines "4th Declension Noun Neuter Endings.txt")))
+                                  (forms-from-file "4th Declension Noun Neuter Endings.txt")))
+(define 4THDECNEUEX (make-Form_Info "4th Declension Neuter Noun:\ngenū, genūs (knee)"
+                                  "Declension"
+                                  (forms-from-file "4th Declension Noun Neuter Example.txt")))
 (define 5THDECEND (make-Form_Info "5th Declension Noun Feminine Endings"
                                "Declension"
-                               (read-lines "5th Declension Noun Endings.txt")))
-(define DEC_LIST (list 1STDECEND 2NDDECMASCEND 2NDDECNEUEND 3RDDECEND 3RDDECNEUEND 4THDECMASCEND 4THDECNEUEND 5THDECEND))
+                               (forms-from-file "5th Declension Noun Endings.txt")))
+(define 5THDECEX (make-Form_Info "5th Declension Feminine Noun:\nrēs, reī (thing)"
+                               "Declension"
+                               (forms-from-file "5th Declension Noun Example.txt")))
+(define DEC_LIST (list 1STDECEND 1STDECEX
+                       2NDDECMASCEND 2NDDECMASCEX 2NDDECNEUEND 2NDDECNEUEX
+                       3RDDECEND 3RDDECEX 3RDISTEMEND 3RDISTEMEX 3RDDECNEUEND 3RDDECNEUEX 3RDISTEMNEUEND 3RDISTEMNEUEX
+                       4THDECMASCEND 4THDECMASCEX 4THDECNEUEND 4THDECNEUEX
+                       5THDECEND 5THDECEX))
 ; Declensions locations
 (define LOCATIOND1 (make-posn 295 200))
 (define LOCATIOND2 (make-posn 295 300))
@@ -413,8 +453,8 @@
 ; returns one of the text locations for typing, or false if the user did not click near one  
 (define (dec_location mx my)
   (foldr (lambda (location acc)
-        (if (and (< (- mx 25) (posn-x location) (+ mx 25))
-                   (< (- my 10) (posn-y location) (+ my 10)))
+        (if (and (< (- mx 50) (posn-x location) (+ mx 50))
+                   (< (- my 25) (posn-y location) (+ my 25)))
               location
               acc)) #false DEC_LOCATIONS))
 
@@ -422,8 +462,8 @@
 ; returns one of the text locations for typing, or false if the user did not click near one  
 (define (conj_location mx my)
   (foldr (lambda (location acc)
-        (if (and (< (- mx 25) (posn-x location) (+ mx 25))
-                   (< (- my 10) (posn-y location) (+ my 10)))
+        (if (and (< (- mx 50) (posn-x location) (+ mx 50))
+                   (< (- my 25) (posn-y location) (+ my 25)))
               location
               acc)) #false CONJ_LOCATIONS))
 
