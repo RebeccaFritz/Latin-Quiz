@@ -1,13 +1,12 @@
-title First Declension Feminine Noun Endings
-form -a 
-form -ae 
-form -ae 
-form -am 
-form -ā 
-form -a 
-form -ae 
-form -ārum 
-form -īs 
-form -ās  
-form -īs 
-form -ae
+-a 
+-ae 
+-ae 
+-am 
+-ā 
+-a 
+-ae 
+-ārum 
+-īs 
+-ās  
+-īs 
+-ae
