@@ -388,8 +388,8 @@
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; gives a hint when the ? button is pressed
 (define (give-hint ws mx my)
-  (if (and (< 1525 mx 1575) (< 25 my 75))
-      (make-WS (update-hint (WS-ciw ws) (Form_Info-list_forms (WS-Form_Info ws)))
+  (if (and (< 1125 mx 1175) (< 25 my 75))
+      (make-WS (update-hint ws (WS-ciw ws) (Form_Info-list_forms (WS-Form_Info ws)))
                (WS-Form_Info ws)
                (WS-score ws)
                (WS-grid ws)
@@ -398,16 +398,25 @@
                (WS-area_clicked ws))
       ws))
 
-(define (update-hint ciw list_forms)
-  (local [(define location (determine_location (WS-area_clicked ws) (WS-grid ws)))
-          (define answer (Form-word (filter f list_forms)))]
+; Worldstate, list of InputWord, list of Forms -> list of InputWord
+; updates the ciw with the proper answer
+(define (update-hint ws ciw list_forms)
+  (local [(define location (determine_location (WS-area_clicked ws) (WS-grid ws)))]
            (map (lambda (li)
                   (if (and (= (posn-x location) (posn-x (InputWord-location li)))
                            (= (posn-y location) (posn-y (InputWord-location li))))
-                      (make-InputWord answer
+                      (make-InputWord (answer ciw list_forms location)
                                       (InputWord-location li))
                       li))
                 ciw)))
+
+; list of InputWord, list of Forms, location -> string
+; finds the proper answer in the list of Forms
+(define (answer ciw list_forms location)
+  (if (and (= (posn-x location) (posn-x (InputWord-location (first ciw))))
+           (= (posn-y location) (posn-y (InputWord-location (first ciw)))))
+      (Form-word (first list_forms))
+      (answer (rest ciw) (rest list_forms) location)))
 
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the color of the buttons when they are clicked
