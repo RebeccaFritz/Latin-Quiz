@@ -13,6 +13,15 @@
 ; * the color of the words will change when you have them correct (or wrong if you ask for help)
 
 ;-----------------------------------------------------------
+; Menu Structure
+; * title - a string
+; * buttons - list of Button structures
+(define-struct Menu [title buttons])
+
+; Includes all information relavent to creating buttons
+; * image - an image of the button
+; * location - a posn
+(define-struct Button [image location])
 
 ;Make World State and Structures
 ; * ciw -> list of InputWord structures (another structure)
@@ -23,7 +32,7 @@
 ; * cursor_location -> a posn representing the last location the mouse clicked
 (define-struct WS [ciw Form_Info score grid b1? b2? area_clicked])
 
-;Includes all the information about the current forms the player is matching
+; Includes all the information about the current forms the player is matching
 ; * prompt - a string with the prompt being displayed for the player
 ; * type - a string with the values "decelension" or "conjugation"
 ; * list_forms - list of Form structures
@@ -69,6 +78,72 @@
 (define HEIGHT 800)
 (define WIDTH 600)
 (define BACKGROUND (rectangle WIDTH HEIGHT 'solid 'LightCyan))
+(define MENU_BACKGROUND (rectangle (* WIDTH 2) HEIGHT 'solid 'LightCyan))
+
+; Menu
+(define MAIN_MENU (make-Menu "Main Menu" (list (make-Button (overlay (text "Noun Declension" 24 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 130 150))
+                                               (make-Button (overlay (text "Indicative Verbs" 24 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 365 150))
+                                               (make-Button (overlay (text "Subjunctive Verbs" 24 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 150))
+                                               (make-Button (overlay (text "Special Nouns" 24 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 150))
+                                               (make-Button (overlay (text "Special Verbs" 24 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 1070 150))
+                                               
+                                               (make-Button (overlay (text "1st Declension Nouns" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 130 210))
+                                               (make-Button (overlay (text "2nd Declension Nouns" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 130 270))
+                                               (make-Button (overlay (text "3rd Declension Nouns" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 130 330))
+                                               (make-Button (overlay (text "4th Declension Nouns" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 130 390))
+                                               (make-Button (overlay (text "5th Declension Nouns" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 130 450))
+
+                                               (make-Button (overlay (text "1st Conjugation Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 365 210))
+                                               (make-Button (overlay (text "2nd Conjugation Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 365 270))
+                                               (make-Button (overlay (text "3rd Conjugation Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 365 330))
+                                               (make-Button (overlay (text "3rd Conjugation -iō Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 365 390))
+                                               (make-Button (overlay (text "4th Conjugation Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 365 450))
+
+                                               (make-Button (overlay (text "1st Conjugation Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 210))
+                                               (make-Button (overlay (text "2nd Conjugation Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 270))
+                                               (make-Button (overlay (text "3rd Conjugation Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 330))
+                                               (make-Button (overlay (text "3rd Conjugation -iō Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 390))
+                                               (make-Button (overlay (text "4th Conjugation Verbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 450)))))
 
 ; Defining Globals for the Declensions Chart
 (define DGRIDWIDTH (- WIDTH 100))
@@ -276,11 +351,12 @@
 
 ; Worldstate -> Image 
 (define (render ws)
-  (local [(define grid (WS-grid ws))]
-    (beside (overlay (draw-words (WS-ciw ws) (Form_Info-list_forms (WS-Form_Info ws))) (drawgrid grid))
-            (place-image (drawprompt (Form_Info-prompt (WS-Form_Info ws)))
-             (/ (image-width BACKGROUND) 2) (/ (image-height BACKGROUND) 2)
-                     (drawbuttons (WS-b1? ws) (WS-b2? ws))))))
+  (cond [(WS? ws) (local [(define grid (WS-grid ws))]
+                    (beside (overlay (draw-words (WS-ciw ws) (Form_Info-list_forms (WS-Form_Info ws))) (drawgrid grid))
+                            (place-image (drawprompt (Form_Info-prompt (WS-Form_Info ws)))
+                                         (/ (image-width BACKGROUND) 2) (/ (image-height BACKGROUND) 2)
+                                         (drawbuttons (WS-b1? ws) (WS-b2? ws)))))]
+        [(Menu? ws) (draw-menu-buttons ws (draw-title ws MENU_BACKGROUND))]))
 
 ; List of InputWord Structures, List of Form Structures -> Image
 ; draws the users text on screen
@@ -317,7 +393,6 @@
 (define (word_or_form wordstring formstring)
   (local [(define txt_size 24)]
     (if (string=? wordstring formstring) (text formstring txt_size 'green) (text wordstring txt_size 'black))))
-
 
 ; String -> image
 ; Draws the prompt text on the board
@@ -366,19 +441,26 @@
          bkgrnd
          lol))
 
+; Worldstate, image -> image
+; Draws the title on the menu screen
+(define (draw-title ws img) (place-image (text (Menu-title ws) 24 'black) WIDTH 50 img))
 
-
-
-; Worldstate -> Worldstate
-(define (tock ws) ws)
-
-
+; WorldState, image -> image
+; draws the buttons on the menu screen
+(define (draw-menu-buttons ws img)
+  (foldr (lambda (li acc) (place-image (Button-image li) (posn-x (Button-location li)) (posn-y (Button-location li)) acc))
+         img
+         (Menu-buttons ws)))
+  
 ; Worldstate, Mouse-x, Mouse-y, Mouse event -> Worldstate
 ; checks to see if the buttons on screen are clicked
 (define (mouse-handler ws mx my evt)
-  (if (string=? "button-up" evt)
-      (update-area_clicked (give-hint (change-button-color (change-chart ws mx my) mx my) mx my) mx my)
-      ws))
+  (cond [(WS? ws) (if (string=? "button-up" evt)
+                      (update-area_clicked (give-hint (change-button-color (change-chart ws mx my) mx my) mx my) mx my)
+                      ws)]
+        [(Menu? ws) (if (string=? "button-up" evt)
+                        (change-ws ws mx my)
+                        ws)]))
 
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the area_clicked value when the mouse is used
@@ -464,23 +546,42 @@
              my
              (+ b2y (/ BUTTONHEIGHT 2))))))
 
-
-
+; Worldstate, Mouse-x, Mouse-y -> Worldstate
+; generates a new world state based on the option selected from the menu 
+(define (change-ws ws mx my)
+  (cond [(and (<= 30 mx 230) (<= 125 my 175)) ;Noun Declension
+         (make-WS DEC_WORDS
+                  (list-ref DEC_LIST (random 0 (length DEC_LIST)))
+                  0
+                  decgridstruct
+                  #true
+                  #false
+                  (make-posn 0 0))]
+        [(and (<= 265 mx 465) (<= 125 my 175)) ;Verb Conjugation
+         (make-WS CONJ_WORDS
+                  (list-ref CONJ_LIST (random 0 (length CONJ_LIST)))
+                  0
+                  conjgridstruct
+                  #false
+                  #true
+                  (make-posn 0 0))]
+        [else ws]))
 
 ; Worldstate, Key -> Worldstate
 ; if a key is hit and the mouse has clicked in the proper area then type in that location
 ; [ciw lof score grid prompt b1? b2? area_clicked]
 (define (key-handler ws key); ws)
-  (local [(define location (determine_location (WS-area_clicked ws) (WS-grid ws)))]
-    (if (posn? location)
-        (make-WS (update_word key (WS-ciw ws) location)
-                 (WS-Form_Info ws)
-                 (WS-score ws)
-                 (WS-grid ws)
-                 (WS-b1? ws)
-                 (WS-b2? ws)
-                 (WS-area_clicked ws))
-       ws)))
+  (cond [(WS? ws) (local [(define location (determine_location (WS-area_clicked ws) (WS-grid ws)))]
+                    (if (posn? location)
+                        (make-WS (update_word key (WS-ciw ws) location)
+                                 (WS-Form_Info ws)
+                                 (WS-score ws)
+                                 (WS-grid ws)
+                                 (WS-b1? ws)
+                                 (WS-b2? ws)
+                                 (WS-area_clicked ws))
+                        ws))]
+        [(Menu? ws) ws]))
 
 ; Posn, Grid -> Posn or Boolean
 (define (determine_location area_clicked grid)
@@ -560,9 +661,8 @@
                             #f
                             (make-posn 0 0)))
 
-(big-bang initial-ws
+(big-bang MAIN_MENU ;initial-ws
   (to-draw render)
-  (on-tick tock)
   (on-mouse mouse-handler)
   (on-key key-handler))
   
