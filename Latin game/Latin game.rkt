@@ -30,7 +30,7 @@
 ; * grid -> grid structure with all the grid details
 ; * b1? and b2? -> is the button pressed
 ; * cursor_location -> a posn representing the last location the mouse clicked
-(define-struct WS [ciw Form_Info score grid b1? b2? area_clicked])
+(define-struct WS [ciw Form_Info score grid area_clicked])
 
 ; Includes all the information about the current forms the player is matching
 ; * prompt - a string with the prompt being displayed for the player
@@ -321,31 +321,13 @@
 (define CONJ_LIST (list ACTINDICEND 1STCONJPRESACTINDIC 2NDCONJPRESACTINDIC 3RDCONJPRESACTINDIC 3RDCONJIOPRESACTINDIC 4THCONJPRESACTINDIC))
 
 ; Buttons
-(define B1LOCATION (make-posn (/ WIDTH 4) (* 7 (/ HEIGHT 8))))
-(define B2LOCATION (make-posn (* (/ WIDTH 4) 3) (posn-y B1LOCATION)))
 (define BUTTONWIDTH 250)
 (define BUTTONHEIGHT 100)
 (define HELPBUTTON (overlay (text "?" 24 'black) (square 50 'outline 'black)))
-(define BUTTONS (place-image HELPBUTTON 550 50
-                             (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
-                                      (text "Noun Declension" 24 'black)) (posn-x B1LOCATION) (posn-y B1LOCATION)
-                                                                          (place-image (overlay (text "Verb Conjugation" 24 'black)
-                                                                                                (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black))
-                                                                                       (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND))))
-(define B1P (place-image HELPBUTTON 550 50 (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
-                                  (text "Noun Declension" 24 'black)
-                                  (rectangle BUTTONWIDTH BUTTONHEIGHT 'solid 'PaleTurquoise))
-                         (posn-x B1LOCATION) (posn-y B1LOCATION)
-                         (place-image (overlay (text "Verb Conjugation" 24 'black)
-                                               (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black))
-                                      (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND))))
-(define B2P (place-image HELPBUTTON 550 50 (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
-                                  (text "Noun Declension" 24 'black))
-                         (posn-x B1LOCATION) (posn-y B1LOCATION)
-                         (place-image (overlay (text "Verb Conjugation" 24 'black)
-                                               (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
-                                               (rectangle BUTTONWIDTH BUTTONHEIGHT 'solid 'PaleTurquoise))
-                                      (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND))))
+(define BUTTONS (place-image HELPBUTTON 550 50                            
+                             (place-image (overlay (text "Menu" 24 'black)
+                                                   (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black))
+                                          (/ WIDTH 2) (* 7 (/ HEIGHT 8)) BACKGROUND)))
 
 ;------------------------------------------------------------------------------
 
@@ -355,7 +337,7 @@
                     (beside (overlay (draw-words (WS-ciw ws) (Form_Info-list_forms (WS-Form_Info ws))) (drawgrid grid))
                             (place-image (drawprompt (Form_Info-prompt (WS-Form_Info ws)))
                                          (/ (image-width BACKGROUND) 2) (/ (image-height BACKGROUND) 2)
-                                         (drawbuttons (WS-b1? ws) (WS-b2? ws)))))]
+                                         BUTTONS)))]
         [(Menu? ws) (draw-menu-buttons ws (draw-title ws MENU_BACKGROUND))]))
 
 ; List of InputWord Structures, List of Form Structures -> Image
@@ -398,14 +380,6 @@
 ; Draws the prompt text on the board
 (define (drawprompt prompt)
   (text prompt 24 'black))
-
-; Boolean, boolean -> image
-; Draws the buttons on the board with a darker color if they are pressed
-(define (drawbuttons b1? b2?)
-  (cond
-    [b1? B1P]
-    [b2? B2P]
-    [else BUTTONS]))
 
 ; structure -> image
 ; draws one of the grids on the background
@@ -456,16 +430,21 @@
 ; checks to see if the buttons on screen are clicked
 (define (mouse-handler ws mx my evt)
   (cond [(WS? ws) (if (string=? "button-up" evt)
-                      (update-area_clicked (give-hint (change-button-color (change-chart ws mx my) mx my) mx my) mx my)
+                      (return_to_menu (update-area_clicked (give-hint ws mx my) mx my) mx my)
                       ws)]
         [(Menu? ws) (if (string=? "button-up" evt)
                         (change-ws ws mx my)
                         ws)]))
 
+; WorldState, Mouse-x, Mouse-y -> Worldstate
+; returns to the menu if the menu button is pressed
+(define (return_to_menu ws mx my)
+  (if (and (<= 775 mx 1025) (<= 650 my 750)) MAIN_MENU ws))
+
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the area_clicked value when the mouse is used
 (define (update-area_clicked ws mx my)
-  (make-WS (WS-ciw ws) (WS-Form_Info ws) (WS-score ws) (WS-grid ws) (WS-b1? ws) (WS-b2? ws) (make-posn mx my)))
+  (make-WS (WS-ciw ws) (WS-Form_Info ws) (WS-score ws) (WS-grid ws) (make-posn mx my)))
 
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; gives a hint when the ? button is pressed
@@ -475,8 +454,6 @@
                (WS-Form_Info ws)
                (WS-score ws)
                (WS-grid ws)
-               (WS-b1? ws)
-               (WS-b2? ws)
                (WS-area_clicked ws))
       ws))
 
@@ -501,52 +478,6 @@
       (answer (rest ciw) (rest list_forms) location)))
 
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
-; changes the color of the buttons when they are clicked
-(define (change-button-color ws mx my)
-  (local [(define b1p (make-WS DEC_WORDS (list-ref DEC_LIST (random 0 (length DEC_LIST))) (WS-score ws) (WS-grid ws) #t #f (WS-area_clicked ws)))
-          (define b2p (make-WS CONJ_WORDS (list-ref CONJ_LIST (random 0 (length CONJ_LIST))) (WS-score ws) (WS-grid ws) #f #t (WS-area_clicked ws)))]
-    (cond [(b1-clicked? mx my) b1p]
-          [(b2-clicked? mx my) b2p]
-          [else ws])))
-
-; Worldstate, Mouse-x, Mouse-y -> Worldstate
-; changes the chart being displayed when a button is pressed
-(define (change-chart ws mx my)
-  (local [(define declension_chart (make-WS (WS-ciw ws) (WS-Form_Info ws) (WS-score ws) decgridstruct (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))
-          (define conjugation_chart (make-WS (WS-ciw ws) (WS-Form_Info ws) (WS-score ws) conjgridstruct (WS-b1? ws) (WS-b2? ws) (WS-area_clicked ws)))]
-    (cond [(b1-clicked? mx my) declension_chart]
-          [(b2-clicked? mx my) conjugation_chart]
-          [else ws])))
-
-; Mouse-x, Mouse-y -> Boolean
-; consumes the location of the mouse and returns true if it is over the first button (Declensions)
-(define (b1-clicked? mx my)
-  (local [(define b1x (+ 600 (posn-x B1LOCATION)))
-          (define b1y (posn-y B1LOCATION))
-          (define b2x (+ 600 (posn-x B2LOCATION)))
-          (define b2y (posn-y B2LOCATION))]
-    (and (<= (- b1x (/ BUTTONWIDTH 2))
-             mx
-             (+ b1x (/ BUTTONWIDTH 2)))
-         (<= (- b1y (/ BUTTONHEIGHT 2))
-             my
-             (+ b1y (/ BUTTONHEIGHT 2))))))
-
-; Mouse-x, Mouse-y -> Boolean
-; consumes the location of the mouse and returns true if it is over the second button (Conjugations)
-(define (b2-clicked? mx my)
-  (local [(define b1x (+ 600 (posn-x B1LOCATION)))
-          (define b1y (posn-y B1LOCATION))
-          (define b2x (+ 600 (posn-x B2LOCATION)))
-          (define b2y (posn-y B2LOCATION))]
-    (and (<= (- b2x (/ BUTTONWIDTH 2))
-             mx
-             (+ b2x (/ BUTTONWIDTH 2)))
-         (<= (- b2y (/ BUTTONHEIGHT 2))
-             my
-             (+ b2y (/ BUTTONHEIGHT 2))))))
-
-; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; generates a new world state based on the option selected from the menu 
 (define (change-ws ws mx my)
   (cond [(and (<= 30 mx 230) (<= 125 my 175)) ;Noun Declension
@@ -554,16 +485,12 @@
                   (list-ref DEC_LIST (random 0 (length DEC_LIST)))
                   0
                   decgridstruct
-                  #true
-                  #false
                   (make-posn 0 0))]
         [(and (<= 265 mx 465) (<= 125 my 175)) ;Verb Conjugation
          (make-WS CONJ_WORDS
                   (list-ref CONJ_LIST (random 0 (length CONJ_LIST)))
                   0
                   conjgridstruct
-                  #false
-                  #true
                   (make-posn 0 0))]
         [else ws]))
 
@@ -577,8 +504,6 @@
                                  (WS-Form_Info ws)
                                  (WS-score ws)
                                  (WS-grid ws)
-                                 (WS-b1? ws)
-                                 (WS-b2? ws)
                                  (WS-area_clicked ws))
                         ws))]
         [(Menu? ws) ws]))
@@ -648,20 +573,8 @@
         [(string=? key "O") "ō"]
         [(string=? key "U") "ū"]
         [else key]))
-  
 
-
-; Initial Worldstate
-; (define-struct WS [ciw lof score grid b1? b2?])
-(define initial-ws (make-WS DEC_WORDS
-                            (make-Form_Info "Welcome! Please press 'Noun Declension'\nor 'Verb Conjugation' to begin." "intro" empty)
-                            0
-                            decgridstruct
-                            #f
-                            #f
-                            (make-posn 0 0)))
-
-(big-bang MAIN_MENU ;initial-ws
+(big-bang MAIN_MENU
   (to-draw render)
   (on-mouse mouse-handler)
   (on-key key-handler))
