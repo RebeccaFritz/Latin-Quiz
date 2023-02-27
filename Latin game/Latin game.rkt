@@ -15,7 +15,7 @@
 ;-----------------------------------------------------------
 
 ;Make World State and Structures
-; * ciw -> list of current input words (another structure)
+; * ciw -> list of InputWord structures (another structure)
 ; * form_info -> a structure with all the form information
 ; * score -> how many words the player has correct
 ; * grid -> grid structure with all the grid details
@@ -225,44 +225,52 @@
                          (make-InputWord "" LOCATIONC5)
                          (make-InputWord "" LOCATIONC6)))
 ; Conjugation Form lists
-(define 1STCONJACTINDIC (make-Form_Info "1st Conjugation Active Indicative"
+(define ACTINDICEND (make-Form_Info "Active Indicative Endings"
                                "Conjugation"
-                               empty))
-(define 2NDCONJACTINDIC (make-Form_Info "2nd Conjugation Active Indicative"
+                               (forms-from-file "Present System Active Endings.txt")))
+(define 1STCONJPRESACTINDIC (make-Form_Info "1st Conjugation Present Active Indicative:\nlaudō, laudāre, laudāvī, laudātum (to praise)"
                                "Conjugation"
-                               empty))
-(define 3RDCONJACTINDIC (make-Form_Info "3rd Conjugation Active Indicative"
+                               (forms-from-file "Present Active 1st Conjugation Example.txt")))
+(define 2NDCONJPRESACTINDIC (make-Form_Info "2nd Conjugation Present Active Indicative:\nmoneō, monēre, monuī, monitum (to warn)"
                                "Conjugation"
-                               empty))
-(define 4THCONJACTINDIC (make-Form_Info "4th Conjugation Active Indicative"
+                               (forms-from-file "Present Active 2nd Conjugation Example.txt")))
+(define 3RDCONJPRESACTINDIC (make-Form_Info "3rd Conjugation Present Active Indicative:\nagō, agere, ēgī, āctum (to drive, lead, do, act)"
                                "Conjugation"
-                               empty))
-(define CONJ_LIST (list 1STCONJACTINDIC 2NDCONJACTINDIC 3RDCONJACTINDIC 4THCONJACTINDIC))
+                               (forms-from-file "Present Active 3rd Conjugation Example.txt")))
+(define 3RDCONJIOPRESACTINDIC (make-Form_Info "3rd -iō Conjugation Present Active Indicative:\ncapiō, capere, cēpī, captum\n(to take, capture, seize, get)"
+                               "Conjugation"
+                               (forms-from-file "Present Active 3rd -iō Conjugation Example.txt")))
+(define 4THCONJPRESACTINDIC (make-Form_Info "4th Conjugation Present Active Indicative:\naudiō, audīre, audīvī, audītum (to hear, listen to)"
+                               "Conjugation"
+                               (forms-from-file "Present Active 4th Conjugation Example.txt")))
+(define CONJ_LIST (list ACTINDICEND 1STCONJPRESACTINDIC 2NDCONJPRESACTINDIC 3RDCONJPRESACTINDIC 3RDCONJIOPRESACTINDIC 4THCONJPRESACTINDIC))
 
 ; Buttons
 (define B1LOCATION (make-posn (/ WIDTH 4) (* 7 (/ HEIGHT 8))))
 (define B2LOCATION (make-posn (* (/ WIDTH 4) 3) (posn-y B1LOCATION)))
 (define BUTTONWIDTH 250)
 (define BUTTONHEIGHT 100)
-(define BUTTONS (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
+(define HELPBUTTON (overlay (text "?" 24 'black) (square 50 'outline 'black)))
+(define BUTTONS (place-image HELPBUTTON 550 50
+                             (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
                                       (text "Noun Declension" 24 'black)) (posn-x B1LOCATION) (posn-y B1LOCATION)
                                                                           (place-image (overlay (text "Verb Conjugation" 24 'black)
                                                                                                 (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black))
-                                                                                       (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND)))
-(define B1P (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
+                                                                                       (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND))))
+(define B1P (place-image HELPBUTTON 550 50 (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
                                   (text "Noun Declension" 24 'black)
                                   (rectangle BUTTONWIDTH BUTTONHEIGHT 'solid 'PaleTurquoise))
                          (posn-x B1LOCATION) (posn-y B1LOCATION)
                          (place-image (overlay (text "Verb Conjugation" 24 'black)
                                                (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black))
-                                      (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND)))
-(define B2P (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
+                                      (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND))))
+(define B2P (place-image HELPBUTTON 550 50 (place-image (overlay (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
                                   (text "Noun Declension" 24 'black))
                          (posn-x B1LOCATION) (posn-y B1LOCATION)
                          (place-image (overlay (text "Verb Conjugation" 24 'black)
                                                (rectangle BUTTONWIDTH BUTTONHEIGHT 'outline 'black)
                                                (rectangle BUTTONWIDTH BUTTONHEIGHT 'solid 'PaleTurquoise))
-                                      (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND)))
+                                      (posn-x B2LOCATION) (posn-y B2LOCATION) BACKGROUND))))
 
 ;------------------------------------------------------------------------------
 
@@ -294,12 +302,12 @@
                                          (word_or_form (InputWord-word (list-ref ciw 11)) (Form-word (list-ref lof 11))))
                                    DEC_LOCATIONS
                                    (rectangle WIDTH HEIGHT 'solid 'transparent))]
-          [else (place-images (list (text (InputWord-word (first ciw)) txt_size 'black)
-                                    (text (InputWord-word (second ciw)) txt_size 'black)
-                                    (text (InputWord-word (third ciw)) txt_size 'black)
-                                    (text (InputWord-word (fourth ciw)) txt_size 'black)
-                                    (text (InputWord-word (fifth ciw)) txt_size 'black)
-                                    (text (InputWord-word (sixth ciw)) txt_size 'black))
+          [else (place-images (list (word_or_form (InputWord-word (first ciw)) (Form-word (first lof)))
+                                    (word_or_form (InputWord-word (second ciw)) (Form-word (second lof)))
+                                    (word_or_form (InputWord-word (third ciw)) (Form-word (third lof)))
+                                    (word_or_form (InputWord-word (fourth ciw)) (Form-word (fourth lof)))
+                                    (word_or_form (InputWord-word (fifth ciw)) (Form-word (fifth lof)))
+                                    (word_or_form (InputWord-word (sixth ciw)) (Form-word (sixth lof))))
                               CONJ_LOCATIONS
                               (rectangle WIDTH HEIGHT 'solid 'transparent))])))
 
@@ -369,13 +377,37 @@
 ; checks to see if the buttons on screen are clicked
 (define (mouse-handler ws mx my evt)
   (if (string=? "button-up" evt)
-      (update-area_clicked (change-button-color (change-chart ws mx my) mx my) mx my)
+      (update-area_clicked (give-hint (change-button-color (change-chart ws mx my) mx my) mx my) mx my)
       ws))
 
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the area_clicked value when the mouse is used
 (define (update-area_clicked ws mx my)
   (make-WS (WS-ciw ws) (WS-Form_Info ws) (WS-score ws) (WS-grid ws) (WS-b1? ws) (WS-b2? ws) (make-posn mx my)))
+
+; Worldstate, Mouse-x, Mouse-y -> Worldstate
+; gives a hint when the ? button is pressed
+(define (give-hint ws mx my)
+  (if (and (< 1525 mx 1575) (< 25 my 75))
+      (make-WS (update-hint (WS-ciw ws) (Form_Info-list_forms (WS-Form_Info ws)))
+               (WS-Form_Info ws)
+               (WS-score ws)
+               (WS-grid ws)
+               (WS-b1? ws)
+               (WS-b2? ws)
+               (WS-area_clicked ws))
+      ws))
+
+(define (update-hint ciw list_forms)
+  (local [(define location (determine_location (WS-area_clicked ws) (WS-grid ws)))
+          (define answer (Form-word (filter f list_forms)))]
+           (map (lambda (li)
+                  (if (and (= (posn-x location) (posn-x (InputWord-location li)))
+                           (= (posn-y location) (posn-y (InputWord-location li))))
+                      (make-InputWord answer
+                                      (InputWord-location li))
+                      li))
+                ciw)))
 
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the color of the buttons when they are clicked
@@ -473,6 +505,7 @@
   (= (image-height outline) (image-height DECOUTLINE)))
 
 ; Key, String, Posn -> String
+; updates the current input word at that location when a key is pressed
 (define (update_word key ciw location)
   (local [(define valid_inputs (list "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z" "A" "E" "I" "O" "U" "-" "/"))
           (define valid? (foldr (lambda (li acc) (if (string=? key li) #true acc)) #false valid_inputs))
