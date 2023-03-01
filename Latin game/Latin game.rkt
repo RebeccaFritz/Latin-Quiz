@@ -573,7 +573,7 @@
                         (make-WS (update_word key (WS-ciw ws) location)
                                  (WS-Form_Info ws)
                                  (WS-grid ws)
-                                 (WS-area_clicked ws))
+                                 (next_location (WS-area_clicked ws) (Form_Info-type (WS-Form_Info ws)) key))
                         ws))]
         [(Menu? ws) ws]))
 
@@ -643,8 +643,25 @@
         [(string=? key "U") "ū"]
         [else key]))
 
+; posn, string, string -> posn
+; if tab is pressed, this function returns a new posn corresponding to the next space where the user can type
+(define (next_location current_location type key)
+  (if (string=? key "\t")
+      (local [(define x (posn-x current_location))
+              (define y (posn-y current_location))]
+        (cond [(and (and (< (- x 100) 295 (+ x 100))
+                         (< (- y 50) 700 (+ y 50)))
+                    (string=? type "Declension"))
+               (make-posn (+ x 170) 200)]
+              [(and (and (< (- x 100) 295 (+ x 100))
+                         (< (- y 50) 550 (+ y 50)))
+                    (string=? type "Conjugation"))
+               (make-posn (+ x 170) 350)]
+              [else (make-posn x (+ y 100))]))
+      current_location))
+
 (big-bang MAIN_MENU
   (to-draw render)
   (on-mouse mouse-handler)
   (on-key key-handler))
-  
+ 
