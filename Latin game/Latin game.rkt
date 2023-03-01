@@ -30,7 +30,7 @@
 ; * grid -> grid structure with all the grid details
 ; * b1? and b2? -> is the button pressed
 ; * cursor_location -> a posn representing the last location the mouse clicked
-(define-struct WS [ciw Form_Info score grid area_clicked])
+(define-struct WS [ciw Form_Info grid area_clicked])
 
 ; Includes all the information about the current forms the player is matching
 ; * prompt - a string with the prompt being displayed for the player
@@ -84,19 +84,20 @@
 (define MAIN_MENU (make-Menu "Main Menu" (list (make-Button (overlay (text "Noun Declension" 24 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 130 150))
-                                               (make-Button (overlay (text "Indicative Verbs" 24 'black)
+                                               (make-Button (overlay (text "Verb Conjugation" 24 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 365 150))
-                                               (make-Button (overlay (text "Subjunctive Verbs" 24 'black)
+                                               (make-Button (overlay (text "Demonstratives" 24 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 600 150))
-                                               (make-Button (overlay (text "Special Nouns" 24 'black)
+                                               (make-Button (overlay (text "Special Verbs" 24 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 835 150))
-                                               (make-Button (overlay (text "Special Verbs" 24 'black)
+                                               (make-Button (overlay (text "Misc" 24 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 1070 150))
                                                
+                                               ; Noun Declension Options
                                                (make-Button (overlay (text "1st Declension Nouns" 12 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 130 210))
@@ -112,7 +113,8 @@
                                                (make-Button (overlay (text "5th Declension Nouns" 12 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 130 450))
-
+                                               
+                                               ; Verb Conjugation Options
                                                (make-Button (overlay (text "1st Conjugation Verbs" 12 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 365 210))
@@ -129,21 +131,75 @@
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 365 450))
 
-                                               (make-Button (overlay (text "1st Conjugation Verbs" 12 'black)
+                                               ; Demonstratives
+                                               (make-Button (overlay (text "hic, haec, hoc" 12 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 600 210))
-                                               (make-Button (overlay (text "2nd Conjugation Verbs" 12 'black)
+                                               (make-Button (overlay (text "ille, illa, illud" 12 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 600 270))
-                                               (make-Button (overlay (text "3rd Conjugation Verbs" 12 'black)
+                                               (make-Button (overlay (text "quī, quae, quod (Relative)" 12 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 600 330))
-                                               (make-Button (overlay (text "3rd Conjugation -iō Verbs" 12 'black)
+                                               (make-Button (overlay (text "quis, quis, quid (Interrogative)" 12 'black)
                                                                      (rectangle 200 50 'outline 'black))
                                                             (make-posn 600 390))
-                                               (make-Button (overlay (text "4th Conjugation Verbs" 12 'black)
+                                               (make-Button (overlay (text "ipse, ipsa, ipsum (Intensive)" 12 'black)
                                                                      (rectangle 200 50 'outline 'black))
-                                                            (make-posn 600 450)))))
+                                                            (make-posn 600 450))
+                                               (make-Button (overlay (text "is, ea, id" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 510))
+                                               (make-Button (overlay (text "īdem, eadem, idem" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 570))
+                                               (make-Button (overlay (text "ego, meī (Personal)" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 630))
+                                               (make-Button (overlay (text "tū, tuī (Personal)" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 690))
+                                               (make-Button (overlay (text "--, suī (Reflexive)" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 600 750))
+                                               
+
+                                               ; Special Verb Options
+                                               (make-Button (overlay (text "sum, esse, fuī, futūrum" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 210))
+                                               (make-Button (overlay (text "possum, posse, potuī" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 270))
+                                               (make-Button (overlay (text "volō, velle, voluī" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 330))
+                                               (make-Button (overlay (text "nōlō, nōlle, nōluī" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 390))
+                                               (make-Button (overlay (text "mālō, mālle, māluī" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 450))
+                                               (make-Button (overlay (text "eō, īre, iī, itum" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 510))
+                                               (make-Button (overlay (text "ferō, ferre, tulī, lātum" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 570))
+                                               (make-Button (overlay (text "fīō, fierī, factus sum" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 835 630))
+
+                                               ; Misc
+                                               (make-Button (overlay (text "Numerals" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 1070 210))
+                                               (make-Button (overlay (text "Adjectives" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 1070 270))
+                                               (make-Button (overlay (text "Adverbs" 12 'black)
+                                                                     (rectangle 200 50 'outline 'black))
+                                                            (make-posn 1070 330)))))
 
 ; Defining Globals for the Declensions Chart
 (define DGRIDWIDTH (- WIDTH 100))
@@ -233,11 +289,13 @@
 (define 5THDECEX (make-Form_Info "5th Declension Feminine Noun:\nrēs, reī (thing)"
                                "Declension"
                                (forms-from-file "5th Declension Noun Example.txt")))
-(define DEC_LIST (list 1STDECEND 1STDECEX
-                       2NDDECMASCEND 2NDDECMASCEX 2NDDECNEUEND 2NDDECNEUEX
-                       3RDDECEND 3RDDECEX 3RDISTEMEND 3RDISTEMEX 3RDDECNEUEND 3RDDECNEUEX 3RDISTEMNEUEND 3RDISTEMNEUEX
-                       4THDECMASCEND 4THDECMASCEX 4THDECNEUEND 4THDECNEUEX
-                       5THDECEND 5THDECEX))
+(define 1ST_DEC_LIST (list 1STDECEND 1STDECEX))
+(define 2ND_DEC_LIST (list 2NDDECMASCEND 2NDDECMASCEX 2NDDECNEUEND 2NDDECNEUEX))
+(define 3RD_DEC_LIST (list 3RDDECEND 3RDDECEX 3RDISTEMEND 3RDISTEMEX 3RDDECNEUEND 3RDDECNEUEX 3RDISTEMNEUEND 3RDISTEMNEUEX))
+(define 4TH_DEC_LIST (list 4THDECMASCEND 4THDECMASCEX 4THDECNEUEND 4THDECNEUEX))
+(define 5TH_DEC_LIST (list 5THDECEND 5THDECEX))
+(define DEC_LIST (append 1ST_DEC_LIST 2ND_DEC_LIST 3RD_DEC_LIST 4TH_DEC_LIST 5TH_DEC_LIST))
+  
 ; Declensions locations
 (define LOCATIOND1 (make-posn 295 200))
 (define LOCATIOND2 (make-posn 295 300))
@@ -318,7 +376,16 @@
 (define 4THCONJPRESACTINDIC (make-Form_Info "4th Conjugation Present Active Indicative:\naudiō, audīre, audīvī, audītum (to hear, listen to)"
                                "Conjugation"
                                (forms-from-file "Present Active 4th Conjugation Example.txt")))
-(define CONJ_LIST (list ACTINDICEND 1STCONJPRESACTINDIC 2NDCONJPRESACTINDIC 3RDCONJPRESACTINDIC 3RDCONJIOPRESACTINDIC 4THCONJPRESACTINDIC))
+(define 1ST_CONJ_LIST (list 1STCONJPRESACTINDIC))
+(define 2ND_CONJ_LIST (list 2NDCONJPRESACTINDIC))
+(define 3RD_CONJ_LIST (list 3RDCONJPRESACTINDIC))
+(define 3RD_IO_CONJ_LIST (list 3RDCONJIOPRESACTINDIC))
+(define 4TH_CONJ_LIST (list 4THCONJPRESACTINDIC))
+(define CONJ_LIST (append 1ST_CONJ_LIST
+                          2ND_CONJ_LIST
+                          3RD_CONJ_LIST 3RD_IO_CONJ_LIST
+                          4TH_CONJ_LIST
+                          (list ACTINDICEND)))
 
 ; Buttons
 (define BUTTONWIDTH 250)
@@ -417,7 +484,7 @@
 
 ; Worldstate, image -> image
 ; Draws the title on the menu screen
-(define (draw-title ws img) (place-image (text (Menu-title ws) 24 'black) WIDTH 50 img))
+(define (draw-title ws img) (place-image (text (Menu-title ws) 48 'black) WIDTH 50 img))
 
 ; WorldState, image -> image
 ; draws the buttons on the menu screen
@@ -444,7 +511,7 @@
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; changes the area_clicked value when the mouse is used
 (define (update-area_clicked ws mx my)
-  (make-WS (WS-ciw ws) (WS-Form_Info ws) (WS-score ws) (WS-grid ws) (make-posn mx my)))
+  (make-WS (WS-ciw ws) (WS-Form_Info ws) (WS-grid ws) (make-posn mx my)))
 
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; gives a hint when the ? button is pressed
@@ -452,7 +519,6 @@
   (if (and (< 1125 mx 1175) (< 25 my 75))
       (make-WS (update-hint ws (WS-ciw ws) (Form_Info-list_forms (WS-Form_Info ws)))
                (WS-Form_Info ws)
-               (WS-score ws)
                (WS-grid ws)
                (WS-area_clicked ws))
       ws))
@@ -480,19 +546,23 @@
 ; Worldstate, Mouse-x, Mouse-y -> Worldstate
 ; generates a new world state based on the option selected from the menu 
 (define (change-ws ws mx my)
-  (cond [(and (<= 30 mx 230) (<= 125 my 175)) ;Noun Declension
-         (make-WS DEC_WORDS
-                  (list-ref DEC_LIST (random 0 (length DEC_LIST)))
-                  0
-                  decgridstruct
-                  (make-posn 0 0))]
-        [(and (<= 265 mx 465) (<= 125 my 175)) ;Verb Conjugation
-         (make-WS CONJ_WORDS
-                  (list-ref CONJ_LIST (random 0 (length CONJ_LIST)))
-                  0
-                  conjgridstruct
-                  (make-posn 0 0))]
-        [else ws]))
+  (local [(define (dec_list->ws dec_list) (make-WS DEC_WORDS (list-ref dec_list (random 0 (length dec_list))) decgridstruct (make-posn 0 0)))
+          (define (conj_list->ws conj_list) (make-WS CONJ_WORDS (list-ref conj_list (random 0 (length conj_list))) conjgridstruct (make-posn 0 0)))]
+  (cond [(and (<= 30 mx 230) (<= 125 my 175)) ;Random Noun Declension
+         (dec_list->ws DEC_LIST)]
+        [(and (<= 20 mx 230) (<= 185 my 235)) ;1st Declension Nouns
+         (dec_list->ws 1ST_DEC_LIST)]
+        [(and (<= 20 mx 230) (<= 245 my 295)) ;2nd Declension Nouns
+         (dec_list->ws 2ND_DEC_LIST)]
+        [(and (<= 20 mx 230) (<= 305 my 355)) ;3rd Declension Nouns
+         (dec_list->ws 3RD_DEC_LIST)]
+        [(and (<= 20 mx 230) (<= 365 my 415)) ;4th Declension Nouns
+         (dec_list->ws 4TH_DEC_LIST)]
+        [(and (<= 20 mx 230) (<= 425 my 575)) ;5th Declension Nouns
+         (dec_list->ws 5TH_DEC_LIST)]
+        [(and (<= 265 mx 465) (<= 125 my 175)) ;Random Verb Conjugation
+         (conj_list->ws CONJ_LIST)] 
+        [else ws])))
 
 ; Worldstate, Key -> Worldstate
 ; if a key is hit and the mouse has clicked in the proper area then type in that location
@@ -502,7 +572,6 @@
                     (if (posn? location)
                         (make-WS (update_word key (WS-ciw ws) location)
                                  (WS-Form_Info ws)
-                                 (WS-score ws)
                                  (WS-grid ws)
                                  (WS-area_clicked ws))
                         ws))]
