@@ -361,22 +361,44 @@
 (define ACTINDICEND (make-Form_Info "Active Indicative Endings"
                                "Conjugation"
                                (forms-from-file "Present System Active Endings.txt")))
+
 (define 1STCONJPRESACTINDIC (make-Form_Info "1st Conjugation Present Active Indicative:\nlaudō, laudāre, laudāvī, laudātum (to praise)"
                                "Conjugation"
-                               (forms-from-file "Present Active 1st Conjugation Example.txt")))
+                               (forms-from-file "Present Active Indicative 1st Conjugation Example.txt")))
+(define 1STCONJIMPERFACTINDIC (make-Form_Info "1st Conjugation Imperfect Active Indicative:\nlaudō, laudāre, laudāvī, laudātum (to praise)"
+                               "Conjugation"
+                               (forms-from-file "Imperfect Active Indicative 1st Conjugation Example.txt")))
+(define 1STCONJFUTACTINDIC (make-Form_Info "1st Conjugation Future Active Indicative:\nlaudō, laudāre, laudāvī, laudātum (to praise)"
+                               "Conjugation"
+                               (forms-from-file "Future Active Indicative 1st Conjugation Example.txt")))
+(define 1STCONJPERFACTINDIC (make-Form_Info "1st Conjugation Perfect Active Indicative:\nlaudō, laudāre, laudāvī, laudātum (to praise)"
+                               "Conjugation"
+                               (forms-from-file "Perfect Active Indicative 1st Conjugation Example.txt")))
+(define 1STCONJPLUPERFACTINDIC (make-Form_Info "1st Conjugation Pluperfect Active Indicative:\nlaudō, laudāre, laudāvī, laudātum (to praise)"
+                               "Conjugation"
+                               (forms-from-file "Pluperfect Active Indicative 1st Conjugation Example.txt")))
+(define 1STCONJFUTPERFACTINDIC (make-Form_Info "1st Conjugation Future Perfect Active Indicative:\nlaudō, laudāre, laudāvī, laudātum (to praise)"
+                               "Conjugation"
+                               (forms-from-file "Future Perfect Active Indicative 1st Conjugation Example.txt")))
+
+
 (define 2NDCONJPRESACTINDIC (make-Form_Info "2nd Conjugation Present Active Indicative:\nmoneō, monēre, monuī, monitum (to warn)"
                                "Conjugation"
-                               (forms-from-file "Present Active 2nd Conjugation Example.txt")))
+                               (forms-from-file "Present Active Indicative 2nd Conjugation Example.txt")))
+
 (define 3RDCONJPRESACTINDIC (make-Form_Info "3rd Conjugation Present Active Indicative:\nagō, agere, ēgī, āctum (to drive, lead, do, act)"
                                "Conjugation"
-                               (forms-from-file "Present Active 3rd Conjugation Example.txt")))
+                               (forms-from-file "Present Active Indicative 3rd Conjugation Example.txt")))
+
 (define 3RDCONJIOPRESACTINDIC (make-Form_Info "3rd -iō Conjugation Present Active Indicative:\ncapiō, capere, cēpī, captum\n(to take, capture, seize, get)"
                                "Conjugation"
-                               (forms-from-file "Present Active 3rd -iō Conjugation Example.txt")))
+                               (forms-from-file "Present Active Indicative 3rd -iō Conjugation Example.txt")))
+
 (define 4THCONJPRESACTINDIC (make-Form_Info "4th Conjugation Present Active Indicative:\naudiō, audīre, audīvī, audītum (to hear, listen to)"
                                "Conjugation"
-                               (forms-from-file "Present Active 4th Conjugation Example.txt")))
-(define 1ST_CONJ_LIST (list 1STCONJPRESACTINDIC))
+                               (forms-from-file "Present Active Indicative 4th Conjugation Example.txt")))
+
+(define 1ST_CONJ_LIST (list 1STCONJPRESACTINDIC 1STCONJIMPERFACTINDIC 1STCONJFUTACTINDIC 1STCONJPERFACTINDIC 1STCONJPLUPERFACTINDIC 1STCONJFUTPERFACTINDIC))
 (define 2ND_CONJ_LIST (list 2NDCONJPRESACTINDIC))
 (define 3RD_CONJ_LIST (list 3RDCONJPRESACTINDIC))
 (define 3RD_IO_CONJ_LIST (list 3RDCONJIOPRESACTINDIC))
@@ -561,7 +583,9 @@
         [(and (<= 20 mx 230) (<= 425 my 575)) ;5th Declension Nouns
          (dec_list->ws 5TH_DEC_LIST)]
         [(and (<= 265 mx 465) (<= 125 my 175)) ;Random Verb Conjugation
-         (conj_list->ws CONJ_LIST)] 
+         (conj_list->ws CONJ_LIST)]
+        [(and (<= 265 mx 465) (<= 185 my 235)) ;1st Conjugation Verbs
+         (conj_list->ws 1ST_CONJ_LIST)]
         [else ws])))
 
 ; Worldstate, Key -> Worldstate
